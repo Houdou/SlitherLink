@@ -24,6 +24,11 @@
 	};
 	HEX.HexVertCord = HexVertCord;
 
+	var IsPos = function(cell, u, v){
+		return (cell.u == u && cell.v == v);
+	};
+	HEX.IsPos = IsPos;
+
 	var HESH = function(size, values) {
 		if(values.length != 3*size*size - 3*size + 1) {
 			throw new Error("Insufficient values");
@@ -168,7 +173,7 @@
 	};
 	// Query
 	Cell.prototype.CountEdge = function() {
-		var result = { CONN: 0, IMP: 0, UND: 0, ALL: this.EdgeCount};
+		var result = { CONN: 0, IMP: 0, UND: 0, ALL: this.Edge.length };
 		for(var i in this.Edge) {
 			result[STATE[this.Edge[i].state]]++;
 		}
@@ -245,7 +250,7 @@
 	};
 	// Query
 	Vert.prototype.CountEdge = function() {
-		var result = { CONN: 0, IMP: 0, UND: 0, ALL: this.EdgeCount};
+		var result = { CONN: 0, IMP: 0, UND: 0, ALL: this.EdgeCount };
 		for(var i in this.Edge) {
 			result[STATE[this.Edge[i].state]]++;
 		}

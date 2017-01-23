@@ -138,7 +138,7 @@
 	};
 
 	var run = function() {
-		so.MarkZero();
+		so.CheckCells();
 		// if(!so.MarkZero())
 		// 	// setTimeout(run, 0);
 		// else {
