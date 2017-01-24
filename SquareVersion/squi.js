@@ -1,5 +1,5 @@
 (function(){
-	var HEX = window.HEX || {};
+	var SQ = window.SQ || {};
 	var canvas;
 	var using = function(fromClass, classNames) {
 		classNames.forEach((n)=>{
@@ -7,7 +7,7 @@
 		})
 	}
 
-	var HEXUI = function(canvasID) {
+	var SQUI = function(canvasID) {
 
 	};
 
@@ -22,6 +22,7 @@
 		canvas.oncontextmenu = (event)=>{
 			event.preventDefault();
 			if(event.button == 2) {
+				console.clear();
 				run();
 			}
 		}
@@ -33,20 +34,23 @@
 			'PointText',
 			'Group'
 		]);
-		using(HEX, [
+		using(SQ, [
 			'HexVertCord'
 		]);
 
 		init();
-		// run();
+		run();
 	}
 
-	const SLEN = 40.0;
+	const SLEN = 32.0;
 	var B = -1;
-	var sg = {};
+	var sq = {};
 	var so;
 	var SQCord = function(x, y) {
 		return new Point(SLEN * x, SLEN * y);
+	}
+	var SQCordUV = function(u, v) {
+		return new Point(SLEN * (2 * u + 1), SLEN * (2 * v + 1));
 	}
 
 	var init = function() {
@@ -78,89 +82,98 @@
 		// 	5, 4, 4, B, B, B, B, B, B,
 		// ]
 		var values = [
-		4, B, 2, B,
-		3, B, B, 4,
-		B, 2, 4, 4,
-		5, 3, B, B,
+		3, B, B, B, 1, B, 2,
+		B, 2, B, 1, B, 1, 3,
+		3, 0, 2, 2, B, B, 2,
+		B, B, B, B, 1, 2, 3,
+		3, B, B, B, B, B, 2,
+		B, B, B, B, 2, B, B,
+		3, B, B, 3, 1, B, 3,
 		];
-		sg.sqs = new SQ.SQS(4, values);
-		console.log(sg.sqs);
-		// sg.sqs.print();
-		paper.view.center = new Point(0, 0);
+		let size = Math.sqrt(values.length);
+		sq.sqs = new SQ.SQS(7, 7, values);
+		// console.log(sq.sqs);
+		// sq.sqs.print();
+		paper.view.center = new Point(size * SLEN, size * SLEN);
 
-		sg.ui = {
+		sq.ui = {
 			cells: {},
 			edges: {},
 			verts: {}
 		};
-		sg.sqs.CellEach(function(cell) {
-			sg.ui.cells[cell.id] = createSquare(cell);
+		sq.sqs.CellEach(function(cell) {
+			sq.ui.cells[cell.id] = createSquare(cell);
 		});
-		sg.sqs.EdgeEach(function(edge) {
-			sg.ui.edges[edge.id] = createEdge(edge);
+		sq.sqs.EdgeEach(function(edge) {
+			sq.ui.edges[edge.id] = createEdge(edge);
 		});
-		sg.sqs.VertEach(function(vert) {
-			sg.ui.verts[vert.id] = createVert(vert);
+		sq.sqs.VertEach(function(vert) {
+			sq.ui.verts[vert.id] = createVert(vert);
 		});
 
 		paper.view.onResize = function(event) {
-			paper.view.center = new Point(0, 0);
+			paper.view.center = new Point(size * SLEN, size * SLEN);
 		};
 
-		so = new HEX.HEXSO(sg.sqs, sg.ui);
+		so = new SQ.SQSO(sq.sqs, sq.ui);
 
-		window.sg = sg;
+		window.sq = sq;
 		window.so = so;
 	};
 
 	var run = function() {
-		so.CheckCells();
-		// if(!so.MarkZero())
-		// 	// setTimeout(run, 0);
-		// else {
-		// 	console.log("DONE");
-		// }
+		so.solve();
 	};
 
 	var createSquare = function(cell) {
-		var square = new Path.RegularPolygon(SQCord(cell.x, cell.y), 4, SLEN);
-		// if(cell.x == 2 && cell.y == -2)
-			square.fillColor = '#F0F0F0';
+		let square = new Path.RegularPolygon(SQCordUV(cell.u, cell.v), 4, 1.5 * SLEN);
+		// if(cell.u == 2 && cell.v == 2)
+			square.fillColor = '#E0E0E0';
+		// console.log(square.fillColor);
 		// square.strokeColor = '#333333';
 
-		var text = new PointText();
+		let text = new PointText();
 		if(cell.value >= 0)
 			text.content = cell.value;
-		text.fontSize = '1.4em';
-		text.position = SQCord(cell.x, cell.y);
+		text.fontFamily = "Helvetica";
+		text.fontSize = '1.6em';
+		text.position = SQCordUV(cell.u, cell.v);
 
-		var squareGroup = new Group();
+		let squareGroup = new Group();
 		squareGroup.addChild(square);
-		// hexGroup.addChild(text);
+		squareGroup.addChild(text);
 
-		// hexGroup.onClick = (event) => {
-		// 	if(event.event.button != 0) return;
+		squareGroup.onClick = (event) => {
+			if(event.event.button != 0) return;
 
-		// 	var p = SQCordInv(event.point).subtract(new Point(cell.x, cell.y)).multiply(2).round();
-		// 	if(p.isZero()) {
-		// 		console.log("Cell");
-		// 	} else {
-		// 		var edgeID = (cell.x + p.x/2) + "," + (cell.y + p.y/2);
-		// 		cell.sqs.MarkEdge(edgeID, (edge) => {
-		// 			drawEdge(sg.ui.edges[edge.id], edge.state);
-		// 		});
-		// 	}
-		// }
+			let p = event.point.subtract(SQCordUV(cell.u, cell.v)).multiply(0.9/SLEN).round();
+			if(p.isZero()) {
+				console.log("Cell");
+			} else {
+				var edgeID = (2 * cell.u + 1 + p.x) + "," + (2 * cell.v + 1 + p.y);
+				console.log(edgeID);
+				cell.sqs.ToggleEdge(edgeID, (edge) => {
+					drawEdge(sq.ui.edges[edge.id], edge.state);
+				});
+			}
+		}
 
-		return hexGroup;
+		return squareGroup;
 	};
 	var createEdge = function(edge) {
-		var line = new Path();
-		line.moveTo(SQCord(edge.x, edge.y).add(SQCord(edge.ndir[0]*WHR/3, edge.ndir[1]*WHR/3).rotate(90)));
-		line.lineTo(SQCord(edge.x, edge.y).add(SQCord(-edge.ndir[0]*WHR/3, -edge.ndir[1]*WHR/3).rotate(90)));
+		let line = new Path();
+		line.moveTo(SQCord(edge.x, edge.y).add(SQCord(edge.ndir[0]/2, edge.ndir[1]/2).rotate(90)));
+		line.lineTo(SQCord(edge.x, edge.y).add(SQCord(-edge.ndir[0]/2, -edge.ndir[1]/2).rotate(90)));
 		line.strokeColor = 'black';
 		line.strokeWidth = 2;
 		line.dashArray = [6, 6];
+
+		line.onClick = (event) => {
+			if(event.event.button != 0) return;
+			edge.sqs.ToggleEdge(edge.id, (edge) => {
+				drawEdge(sq.ui.edges[edge.id], edge.state);
+			})
+		}
 
 		return line;
 	}

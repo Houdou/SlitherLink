@@ -9,31 +9,44 @@
 		[0, -2, 3],
 	];
 
+	var STATE = {
+		CONN: 1,
+		IMP: 0,
+		UND: -1,
+		'1': 'CONN',
+		'0': 'IMP',
+		'-1': 'UND'
+	};
+	SQ.STATE = STATE;
+
 	var IsPos = function(cell, x, y){
 		return (cell.x == x && cell.y == y);
 	};
 	SQ.IsPos = IsPos;
 
-	var SQS = function(size, values) {
-		if(values.length != size*size) {
+	var SQS = function(sizeY, sizeX, values, offsetY, offsetX) {
+		if(values.length != sizeX*sizeY) {
 			throw new Error("Insufficient values");
 		}
-
-		this.size = size;
+		this.sizeX = sizeX;
+		this.sizeY = sizeY;
+		this.values = values;
 		this.cells = [];
-		this.edges = [];
-		this.verts = [];
+		this.edges = new Map();
+		this.verts = new Map();
+		this.offsetX = offsetX == undefined ? 0 : offsetX;
+		this.offsetY = offsetY == undefined ? 0 : offsetY;
 		var p = 0;
 		// Initialize mesh;
-		for(let y = 0; y <= 2 * this.size + 1; y++) {
+		for(let y = 0; y < 2 * this.sizeY + 1; y++) {
 			this.cells[y] = [];
-			for(let x = 0; x <= 2 * this.size + 1; x++) {
+			for(let x = 0; x < 2 * this.sizeX + 1; x++) {
 				this.cells[y][x] = null;
 			}
 		}
 		// Create cells at (2x+1, 2y+1)
-		for(let v = 0; v < this.size; v++) {
-			for(let u = 0; u < this.size; u++) {
+		for(let v = 0; v < this.sizeY; v++) {
+			for(let u = 0; u < this.sizeX; u++) {
 				this.cells[2 * v + 1][2 * u + 1] = new Cell(values[p++], u, v, this);
 			}
 		}
@@ -47,36 +60,43 @@
 				if(neibCell)
 					cell.setNeib(DIR[i], neibCell);
 
-				var vertID = (2 * cell.u + 1 + (DIR[i][0] + DIR[(i+3)%4][0]) / 2)
-					+ ',' + ((2 * cell.v + 1 + (DIR[i][1] + DIR[(i+3)%4][1]) / 2));
-				console.log(DIR[i]);
-				console.log(DIR[(i+3)%4]);
-				console.log((DIR[i][1] + DIR[(i+3)%4][1]) / 2);
-				console.log(u, v, i, vertID);
-				if(!this.verts[vertID]) {
-					this.verts[vertID] = new Vert(vertID);
+				let vertX = +(2 * cell.u + 1 + (DIR[i][0] + DIR[(i+3)%4][0]) / 2);
+				let vertY = +((2 * cell.v + 1 + (DIR[i][1] + DIR[(i+3)%4][1]) / 2));
+				let vertID = vertX + ',' + vertY;
+
+				// console.log(DIR[i]);
+				// console.log(DIR[(i+3)%4]);
+				// console.log((DIR[i][1] + DIR[(i+3)%4][1]) / 2);
+				// console.log(u, v, i, vertID);
+				if(!this.verts.has(vertID)) {
+					let vert = new Vert(vertID, this);
+					this.cells[vertY][vertX] = vert;
+					this.verts.set(vertID, vert);
 				}
-				cell.setVert(DIR[i], this.verts[vertID]);
+				cell.setVert(DIR[i], this.verts.get(vertID));
 			}
 		});
 		// Create Edge, Connect EV, VE
 		this.CellEach((cell) => {
 			for(let i = 0; i < DIR.length; i++) {
-				var edgeID = (cell.x + DIR[i][0]/2) + "," + (cell.y + DIR[i][1]/2);
-				if(!this.edges[edgeID]) {
-					var edge = new Edge(edgeID, DIR[i%2]);
-					this.edges[edgeID] = edge;
+				let edgeX = +(2 * cell.u + 1 + DIR[i][0]/2);
+				let edgeY = +(2 * cell.v + 1 + DIR[i][1]/2);
+				var edgeID = edgeX + "," + edgeY;
+				if(!this.edges.has(edgeID)) {
+					let edge = new Edge(edgeID, DIR[i%2], this);
+					this.cells[edgeY][edgeX] = edge;
+					this.edges.set(edgeID, edge);
 				}
-				cell.setEdge(DIR[i], this.edges[edgeID]);
+				cell.setEdge(DIR[i], this.edges.get(edgeID));
 
 				// console.log(edgeID);
 				// console.log(cell.Vert[i]);
 				// console.log(cell.Vert[(i+1)%4]);
-				this.edges[edgeID].setVert(cell.Vert[i]);
-				cell.Vert[i].setEdge(this.edges[edgeID]);
+				this.edges.get(edgeID).setVert(cell.Vert[i]);
+				cell.Vert[i].setEdge(this.edges.get(edgeID));
 
-				this.edges[edgeID].setVert(cell.Vert[(i+1)%4]);
-				cell.Vert[(i+1)%4].setEdge(this.edges[edgeID]);
+				this.edges.get(edgeID).setVert(cell.Vert[(i+1)%4]);
+				cell.Vert[(i+1)%4].setEdge(this.edges.get(edgeID));
 			}
 		});
 		// Count VE
@@ -88,10 +108,9 @@
 	};
 	SQS.prototype.print = function() {
 		var str = "";
-		for(let y = 0; y < 2 * this.size - 1; y++) {
-			for(let x = Math.max(this.size - y - 1, 0);
-				x < Math.min(2 * this.size - 1, 3 * this.size - 2 - y); x++) {
-				str += (this.cells[y][x].value + " ");
+		for(let y = 0; y < this.sizeY; y++) {
+			for(let x = this.sizeX; x < this.sizeX; x++) {
+				str += (this.cells[2 * y + 1][2 * x + 1].value + " ");
 			}
 			str += "\n";
 		}
@@ -99,15 +118,15 @@
 	};
 	// Cell
 	SQS.prototype.CellEach = function(f) {
-		for(let y = 0; y < this.size; y++) {
-			for(let x = 0; x < this.size; x++) {
+		for(let y = 0; y < this.sizeY; y++) {
+			for(let x = 0; x < this.sizeX; x++) {
 				f(this.cells[2*y+1][2*x+1]);
 			}
 		}
 	};
 	SQS.prototype.CellUVEach = function(f) {
-		for(let y = 0; y < this.size; y++) {
-			for(let x = 0; x < this.size; x++) {
+		for(let y = 0; y < this.sizeY; y++) {
+			for(let x = 0; x < this.sizeX; x++) {
 				f(x, y);
 			}
 		}
@@ -119,24 +138,24 @@
 	};
 	// Edge
 	SQS.prototype.EdgeEach = function(f) {
-		for(var e in this.edges) {
-			f(this.edges[e]);
+		for(let [edgeID, e] of this.edges) {
+			f(e);
 		}
 	};
 	SQS.prototype.ToggleEdge = function(edgeID, callback) {
-		if(this.edges[edgeID]) {
-			--this.edges[edgeID].state;
-			if(this.edges[edgeID].state < -1)
-				this.edges[edgeID].state = 1;
+		if(this.edges.get(edgeID)) {
+			--this.edges.get(edgeID).state;
+			if(this.edges.get(edgeID).state < -1)
+				this.edges.get(edgeID).state = 1;
 			if(callback) {
-				callback(this.edges[edgeID]);
+				callback(this.edges.get(edgeID));
 			}
 		}
 	};
 	// Vert
 	SQS.prototype.VertEach = function(f) {
-		for(var v in this.verts) {
-			f(this.verts[v]);
+		for(let [vertID, v] of this.verts) {
+			f(v);
 		}
 	}
 	SQ.SQS = SQS;
@@ -193,17 +212,7 @@
 	}
 	SQ.Cell = Cell;
 
-	var STATE = {
-		CONN: 1,
-		IMP: 0,
-		UND: -1,
-		'1': 'CONN',
-		'0': 'IMP',
-		'-1': 'UND'
-	};
-	SQ.STATE = STATE;
-
-	var Edge = function(id, ndir) {
+	var Edge = function(id, ndir, sqs) {
 		var pos = id.split(',');
 		this.x = +pos[0];
 		this.y = +pos[1];
@@ -211,6 +220,7 @@
 		this.state = STATE.UND;
 		this.ndir = ndir;
 		this.Vert = [];
+		this.sqs = sqs;
 	};
 	Edge.prototype.setVert = function(vert) {
 		this.Vert[vert.id] = vert;
@@ -229,13 +239,14 @@
 	}
 	SQ.Edge = Edge;
 
-	var Vert = function(id) {
+	var Vert = function(id, sqs) {
 		var pos = id.split(',');
 		this.x = +pos[0];
 		this.y = +pos[1];
 		this.id = id;
 		this.Edge = [];
 		this.EdgeCount = 0;
+		this.sqs = sqs;
 	};
 	Vert.prototype.setEdge = function(edge) {
 		this.Edge[edge.id] = edge;

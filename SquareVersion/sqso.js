@@ -1,280 +1,98 @@
 (function(){
-	var HEX = window.HEX || {};
+	var SQ = window.SQ || {};
 
-	var SolutionStep = function(edgeid, state) {
-		this.edgeid = edgeid;
-		this.state = state;
-	};
+	var SQSO = function(sqs, ui) {
+		this.sqs = sqs;
+		this.ui = ui;
 
-	var EdgeChoice = function(edges) {
-		this.edges = edges;
-		this.choosed = false;
+		this.subs = [];
 	};
-	EdgeChoice.Concat = function(edgeChoicelist) {
-		var edgeList = [];
-		edgeChoicelist.forEach((edgeChoice) => {
-			for(var i = 0; i < edgeChoice.edges.length; i++) {
-				var inList = false;
-				for(var j = 0; j < edgeList.length; j++) {
-					if(edgeList[j].id == edgeChoice.edges[i].id) {
-						inList = true;
-					}
-				}
-				if(!inList)
-					edgeList.push(edgeChoice.edges[i]);
+	SQSO.prototype.getRegion = function(u, v, size) {
+		if(size < 1 || ~~u !== u || ~~v !== v || ~~size !== size) { throw new Error("Invalid argument"); return; }
+		if(u < 0 || u >= this.sqs.size || v < 0 || v >= this.sqs.size) { throw new Error("uv index out of range"); return; }
+
+		let values = [];
+		let yCount = v + size > this.sqs.sizeY ? this.sqs.sizeY - v : size;
+		let xCount = u + size > this.sqs.sizeX ? this.sqs.sizeX - u : size;
+
+		for(let y = v; y < v + yCount; y++) {
+			for(let x = u; x < u + xCount; x++) {
+				values.push(this.sqs.cells[2 * y + 1][2 * x + 1].value);
+			}
+		}
+		return new SQ.SQS(yCount, xCount, values, v, u);
+	};
+	SQSO.prototype.solve = function() {
+		let size = 1;
+		this.subs[size] = [];
+		for(let j = 0; j < this.sqs.sizeY; j += size) {
+			this.subs[size][j] = []
+			for(let i = 0; i < this.sqs.sizeX; i += size) {
+				this.subs[size][j][i] = this.getRegion(i, j, size);
+			}
+		}
+		// console.log(this.subs);
+		this.solveCell(this.subs[1][0][0].cells[1][1]);
+		// console.log("solved");
+	};
+	SQSO.prototype.solveCell = function(cell) {
+		// console.log(cell);
+		let permus = this.permu(cell.value, 4);
+		let sqset = new SQSO.SQSET(cell.sqs);
+		permus.forEach((permu) => {
+			let solution = new SQ.SQS(1, 1, cell.sqs.values);
+			let i = 0;
+			// console.log(solution);
+			for(let [edgeID, edge] of solution.edges) {
+				edge.state = permu[i++] ? SQ.STATE.CONN : SQ.STATE.IMP;
+			}
+			if(this.verifySQS(solution)){
+				sqset.try(solution);
 			}
 		})
-		return edgeList;
+		console.log(sqset);
 	};
-
-	var EdgeConnect = function(edges) {
-		this.edges = edges;
-		this.state = null;
+	SQSO.prototype.permu = function(value, total) {
+		if(value > total || value < 0) {console.log("Invalid argument"); return [];}
+		if(total == 1) { return [value == 1]; }
+		else if(total > 1) {
+			let result = (value >= total) ? [] : this.permu(value, total-1).map(p => ([false]).concat(p));
+			return result.concat((value <= 0) ? [] : this.permu(value-1, total-1).map(p => ([true]).concat(p)));
+		}
 	};
-	EdgeConnect.prototype.Merge = function(anotherEdgeConnect) {
-		var valid = false;
-		var toExtend = [];
-		for(var i = 0; i < anotherEdgeConnect.length; i++) {
-			var edge = anotherEdgeConnect[i];
-			for(var j = 0; j < this.edges.length; j++) {
-				if(e.id == edge.id) {
-					valid = true;
-					continue;
-				} else {
-					toExtend.push(edge);
-					break;
-				}
+	SQSO.prototype.verify = function() {
+		let size = 1;
+		for(let j = 0; j < this.sqs.sizeY; j += size) {
+			for(let i = 0; i < this.sqs.sizeX; i += size) {
+				this.verifySQS(this.subs[size][j][i]);
 			}
 		}
-		if(valid)
-			this.edges.concat(toExtend);
-		console.log(this.edges);
 	};
-
-	var CellInfo = function(cell) {
-		this.cell = cell;
-		this.edgeChoices = [];
-		this.edgeConnects = [];
-	}
-
-	var HEXSO = function(hesh, ui) {
-		this.hesh = hesh;
-		this.ui = ui;
-		this.solutions = [];
-		this.checklist = [];
-	};
-	HEX.HEXSO = HEXSO;
-
-	HEXSO.prototype.CheckCells = function() {
-		var solved = true;
-		this.hesh.CellEach((cell) => {
-			var cellInfo = new CellInfo(cell);
-			var result = cell.CountEdge();
-			if(cell.value == 0) {
-				// Mark zero
-				for(var i in cell.Vert) {
-					var edges = cell.Vert[i].FindEdgeInState(HEX.STATE.UND);
-					edges.forEach((e) => {
-						e.state = HEX.STATE.IMP;
-						drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-					});
-				}
-				cell.full = true;
-			} else {
-				// Full connected
-				if(result.CONN == cell.value) {
-					var edges = cell.FindEdgeInState(HEX.STATE.UND);
-					edges.forEach((e) => {
-						e.state = HEX.STATE.IMP;
-						drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-					});
-				}
-				// All undetermined edges are must
-				if(result.IMP == 6 - cell.value) {
-					var edges = cell.FindEdgeInState(HEX.STATE.UND);
-					edges.forEach((e) => {
-						e.state = HEX.STATE.CONN;
-						drawEdge(this.ui.edges[e.id], HEX.STATE.CONN);
-					});
-					cell.full = true;
-				}
-				// Check loop
-				if(result.UND > 0) {
-					var edges = cell.FindEdgeInState(HEX.STATE.UND);
-					edges.forEach((e) => {
-						var needCheck = true;
-						for(var i in e.Vert) {
-							if(e.Vert[i].CountEdge().CONN != 1)
-								needCheck = false;
-						}
-						if(needCheck && this.CheckLoop(e)){
-							e.state = HEX.STATE.IMP;
-							drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-						}
-					});	
-				}
+	SQSO.prototype.verifySQS = function(sqs) {
+		let valid = true;
+		console.log(sqs.sizeX, sqs.sizeY);
+		sqs.VertEach((vert) => {
+			let result = vert.CountEdge();
+			if(result.CONN > 2) {
+				console.warn("Multiple connection on " + vert.id);
+				valid = false;
 			}
-			for(var i in cell.Vert) {
-				var result = this.CheckVert(cell.Vert[i]);
-				if(result.CONN == 1 && result.UND == 2) {
-					var inCell = true;
-					var edges = cell.Vert[i].FindEdgeInState(HEX.STATE.UND);
-					edges.forEach((e) => {
-						inCell &= cell.IsEdgeContained(e);
-					});
-					if(inCell) {
-						var edgeChoice = new EdgeChoice(edges);
-						cellInfo.edgeChoices.push(edgeChoice);
-					}
-				}
-				if((result.ALL - result.IMP == result.UND) && result.UND == 2) {
-					var inCell = true;
-					var edges = cell.Vert[i].FindEdgeInState(HEX.STATE.UND);
-					edges.forEach((e) => {
-						inCell &= cell.IsEdgeContained(e);
-					});
-					if(inCell) {
-						var edgeConnect = new EdgeConnect(edges);
-						cellInfo.edgeConnects.push(edgeConnect);
-					}
-				}
+			if(result.CONN < 2 && result.UND == 0) {
+				console.warn("Disconnection on " + vert.id);
+				valid = false;
 			}
-			cell.cellInfo = cellInfo;
-			if(cellInfo.edgeConnects.length > 0 || cellInfo.edgeChoices.length > 0) {
-				// All other need to be connected
-				if(cellInfo.edgeChoices.length > 0){
-					var edgeList;
-					var totalEdges = 0;
-					if(cellInfo.edgeChoices.length > 1) {
-						edgeList = EdgeChoice.Concat(cellInfo.edgeChoices);
-						// TODO:
-						// calculate complex total edges
-					} else {
-						edgeList = cellInfo.edgeChoices[0].edges;
-						totalEdges = 1;
-					}
-					cellInfo.edgeChoices.forEach((edgeChoice) => {
-						result = cell.CountEdge();
-						if((result.UND - 2 == cell.value - result.CONN - 1) && cell.value > 0) {
-							var edges = cell.FindEdgeInState(HEX.STATE.UND);
-							edges.forEach((e) => {
-								
-								if(edgeChoice.edges.indexOf(e) == -1) {
-									e.state = HEX.STATE.CONN;
-									drawEdge(this.ui.edges[e.id], HEX.STATE.CONN);
-								}
-							});
-						}
-						result = cell.CountEdge();
-						if((cell.value - result.CONN - 1 == 0) && result.UND - 2 > 0 && cell.value > 0) {
-							var edges = cell.FindEdgeInState(HEX.STATE.UND);
-							edges.forEach((e) => {
-								if(edgeChoice.edges.indexOf(e) == -1) {
-									e.state = HEX.STATE.IMP;
-									drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-								}
-							});
-						}
-					})
-				}
-				result = cell.CountEdge();
-				if(cellInfo.edgeConnects.length > 0) {
-					// Will be illeage if disconnected
-					cellInfo.edgeConnects.forEach((edgeConnect) => {
-						if(edgeConnect.edges.length > 6 - cell.value && cell.value > 0) {
-							edgeConnect.edges.forEach((e) => {
-								e.state = HEX.STATE.CONN;
-								drawEdge(this.ui.edges[e.id], HEX.STATE.CONN);
-							});
-						}
-						if(edgeConnect.edges.length > cell.value && cell.value > 0) {
-							edgeConnect.edges.forEach((e) => {
-								e.state = HEX.STATE.IMP;
-								drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-							});	
-						}
-						if(result.UND - edgeConnect.edges.length < cell.value - result.CONN && cell.value > 0) {
-							var edges = cell.FindEdgeInState(HEX.STATE.UND);
-							edges.forEach((e) => {
-								if(edgeConnect.edges.indexOf(e) != -1) {
-									e.state = HEX.STATE.CONN;
-									drawEdge(this.ui.edges[e.id], HEX.STATE.CONN);
-								}
-							});
-						}
-					})
-				}
-			}
-			// if(!cell.full) {
-			// 	console.log(cell);
-			// }
-			solved &= cell.full;
 		});
-		// console.log(solved);
-		return solved;
+		return valid;
+	}
+
+	var SQSET = function(sqs) {
+		this.sqs = sqs;
+		this.solutions = [];
 	};
-	HEXSO.prototype.CheckVert = function(vert) {
-		var result = vert.CountEdge();
-		// ERROR
-		if(result.CONN > 2) throw new Error("Multiple connection on Vert: " + vert.id);
-		if(result.CONN < 2 && result.CONN > 0 && result.UND == 0) throw new Error("Disconnection on Vert: " + vert.id);
-		// Possible
-		if(result.CONN == 2) {
-			var edges = vert.FindEdgeInState(HEX.STATE.UND);
-			edges.forEach((e) => {
-				e.state = HEX.STATE.IMP;
-				drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-			});
-		}
-		if(result.ALL - result.IMP == 2 && result.CONN == 1) {
-			var edges = vert.FindEdgeInState(HEX.STATE.UND);
-			edges.forEach((e) => {
-				e.state = HEX.STATE.CONN;
-				drawEdge(this.ui.edges[e.id], HEX.STATE.CONN);
-			});
-		}
-		if(result.ALL - result.IMP == 1 && result.CONN == 0) {
-			var edges = vert.FindEdgeInState(HEX.STATE.UND);
-			edges.forEach((e) => {
-				e.state = HEX.STATE.IMP;
-				drawEdge(this.ui.edges[e.id], HEX.STATE.IMP);
-			});	
-		}
-		return result;
-	}
-	HEXSO.prototype.CheckLoop = function(edge) {
-		var start, end;
-		for(var i in edge.Vert) {
-			if(!end) {
-				end = edge.Vert[i];
-				continue;
-			}
-			if(!start) {
-				start = edge.Vert[i];
-				continue;
-			}
-		}
-		// console.log(start, end);
-		var nodeVert = start;
-		var nodeEdge;
-		var initialCheck = start.CountEdge();
-		if(initialCheck.CONN == 1) {
-			nodeEdge = nodeVert.FindEdgeInState(HEX.STATE.CONN)[0];
-			nodeVert = nodeEdge.getConnectedVert(nodeVert);
+	SQSET.prototype.try = function(solution) {
+		this.solutions.push(solution);
+	};
+	SQSO.SQSET = SQSET;
 
-			while(nodeVert.id != end.id) {
-				var _nodeEdge = nodeVert.getConnectedEdge(nodeEdge);
-				if(_nodeEdge) {
-					nodeEdge = _nodeEdge;
-					var _nodeVert = nodeEdge.getConnectedVert(nodeVert);
-					if(_nodeVert) {
-						nodeVert = _nodeVert;
-					} else { return false; }
-				} else { return false; }
-			}
-			return true;
-		} else { return false; }
-	}
-
-	window.HEXSO = HEXSO;
+	SQ.SQSO = SQSO;
 }());
