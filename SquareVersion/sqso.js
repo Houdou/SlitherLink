@@ -1,6 +1,11 @@
 (function(){
 	var SQ = window.SQ || {};
 
+	var absPos = function(ele) {
+		return ele.sqs.offsetX + "," + ele.sqs.offsetY + " + "
+		+ ((ele.x == undefined)?ele.u:ele.x) + "," + ((ele.y == undefined)?ele.v:ele.y);
+	}
+
 	var SQSO = function(sqs, ui) {
 		this.sqs = sqs;
 		this.ui = ui;
@@ -23,24 +28,25 @@
 		return new SQ.SQS(yCount, xCount, values, v, u);
 	};
 	SQSO.prototype.solve = function() {
+		// Start from every single cell
 		let size = 1;
 		this.subs[size] = [];
 		for(let j = 0; j < this.sqs.sizeY; j += size) {
 			this.subs[size][j] = []
 			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				this.subs[size][j][i] = this.getRegion(i, j, size);
+				if(i == 1 && j == 0)
+				this.subs[size][j][i] = this.solveCell(this.getRegion(i, j, size));
 			}
 		}
-		// console.log(this.subs);
-		this.solveCell(this.subs[1][0][0].cells[1][1]);
+		this.merge();
 		// console.log("solved");
 	};
-	SQSO.prototype.solveCell = function(cell) {
-		// console.log(cell);
+	SQSO.prototype.solveCell = function(sqs) {
+		let cell = sqs.cells[1][1];
 		let permus = this.permu(cell.value, 4);
-		let sqset = new SQSO.SQSET(cell.sqs);
+		let sqset = new SQSO.SQSET(sqs);
 		permus.forEach((permu) => {
-			let solution = new SQ.SQS(1, 1, cell.sqs.values);
+			let solution = new SQ.SQS(1, 1, cell.sqs.values, sqs.offsetY, sqs.offsetX);
 			let i = 0;
 			// console.log(solution);
 			for(let [edgeID, edge] of solution.edges) {
@@ -51,15 +57,25 @@
 			}
 		})
 		console.log(sqset);
+		return sqset;
 	};
+	SQSO.prototype.merge = function() {
+		console.log(this.subs[1]);
+	}
 	SQSO.prototype.permu = function(value, total) {
-		if(value > total || value < 0) {console.log("Invalid argument"); return [];}
+		if(value > total || value < -1) {console.error("Invalid argument"); return [];}
+		if(value == -1) { return this.permuAll(total); }
 		if(total == 1) { return [value == 1]; }
 		else if(total > 1) {
 			let result = (value >= total) ? [] : this.permu(value, total-1).map(p => ([false]).concat(p));
 			return result.concat((value <= 0) ? [] : this.permu(value-1, total-1).map(p => ([true]).concat(p)));
 		}
 	};
+	SQSO.prototype.permuAll = function(total) {
+		if(total == 1) { return [false, true]; }
+		let result = this.permuAll(total - 1).map(p => ([false]).concat(p));
+		return result.concat(this.permuAll(total-1).map(p => ([true]).concat(p)));
+	}
 	SQSO.prototype.verify = function() {
 		let size = 1;
 		for(let j = 0; j < this.sqs.sizeY; j += size) {
@@ -70,20 +86,27 @@
 	};
 	SQSO.prototype.verifySQS = function(sqs) {
 		let valid = true;
-		console.log(sqs.sizeX, sqs.sizeY);
+		// console.log(sqs.sizeX, sqs.sizeY);
 		sqs.VertEach((vert) => {
 			let result = vert.CountEdge();
 			if(result.CONN > 2) {
-				console.warn("Multiple connection on " + vert.id);
+				console.warn("Multiple connection on: " + absPos(vert));
 				valid = false;
 			}
 			if(result.CONN < 2 && result.UND == 0) {
-				console.warn("Disconnection on " + vert.id);
+				console.warn("Disconnection on: " + absPos(vert));
+				// valid = false;
+			}
+		});
+		sqs.CellEach((cell) => {
+			let result = cell.CountEdge();
+			if(result.CONN != cell.value) {
+				console.warn("Insufficient edges on: " + absPos(cell));
 				valid = false;
 			}
 		});
 		return valid;
-	}
+	};
 
 	var SQSET = function(sqs) {
 		this.sqs = sqs;
