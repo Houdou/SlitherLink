@@ -106,6 +106,18 @@
 			vert.EdgeCount = count;
 		});
 	};
+	SQS.prototype.verify = function() {
+		var valid = true;
+
+		this.VertEach((vert) => {
+			let result = vert.CountEdge();
+			if(result.CONN > 2)
+				valid = false;
+			console.log(result);
+		});
+
+		return valid;
+	}
 	SQS.prototype.print = function() {
 		function toFullSpaceCharactor(num) {
 			switch(num) {

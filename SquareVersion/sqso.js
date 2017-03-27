@@ -10,8 +10,8 @@
 	SQSS.parseSQS = function(sizeX, sizeY, sqs) {
 		let sqss = "";
 		let cellsHori = [];
-		for(let v = 1; v < 2 * sizeY + 1; v += 2) {
-			for(let u = 0; u < 2 * sizeX + 1; u += 2) {
+		for(let u = 1; u < 2 * sizeX + 1; u += 2) {
+			for(let v = 0; v < 2 * sizeY + 1; v += 2) {
 				if(sqs.cells[v][u].state == SQ.STATE.CONN)
 					cellsHori.push(SQ.STATE.CONN);
 				if(sqs.cells[v][u].state == SQ.STATE.IMP)
@@ -19,8 +19,8 @@
 			}
 		}
 		let cellsVert = [];
-		for(let v = 0; v < 2 * sizeY + 1; v += 2) {
-			for(let u = 1; u < 2 * sizeX + 1; u += 2) {
+		for(let v = 1; v < 2 * sizeY + 1; v += 2) {
+			for(let u = 0; u < 2 * sizeX + 1; u += 2) {
 				if(sqs.cells[v][u].state == SQ.STATE.CONN)
 					cellsVert.push(SQ.STATE.CONN);
 				if(sqs.cells[v][u].state == SQ.STATE.IMP)
@@ -34,20 +34,21 @@
 		let sqs = new SQ.SQS(sizeY, sizeX, values, offsetY, offsetX);
 		let [cellsHori, cellsVert] = sqss.split(',');
 		let count = 0;
-		for(let v = 1; v < 2 * sizeY + 1; v += 2) {
-			for(let u = 0; u < 2 * sizeX + 1; u += 2) {
+		for(let u = 1; u < 2 * sizeX + 1; u += 2) {
+			for(let v = 0; v < 2 * sizeY + 1; v += 2) {
 				sqs.cells[v][u].state = (cellsHori[count++] == '0' ? SQ.STATE.IMP : SQ.STATE.CONN);	
 			}
 		}
 
 		count = 0;
-		for(let v = 0; v < 2 * sizeY + 1; v += 2) {
-			for(let u = 1; u < 2 * sizeX + 1; u += 2) {
+		for(let v = 1; v < 2 * sizeY + 1; v += 2) {
+			for(let u = 0; u < 2 * sizeX + 1; u += 2) {
 				sqs.cells[v][u].state = (cellsVert[count++] == '0' ? SQ.STATE.IMP : SQ.STATE.CONN);
 			}
 		}
 		return sqs;
 	}
+	SQ.SQSS = SQSS;
 
 	var SQSO = function(sqs, ui) {
 		this.sqs = sqs;
@@ -91,7 +92,8 @@
 		for(let j = 0; j < this.sqs.sizeY; j += size) {
 			this.subs[size][j/size] = [];
 			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				//if(i == 0 && j == 0) {
+				if(i == 0 && j == 0)
+				//{
 				//	console.log(i, j);
 					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
 				//}
@@ -99,17 +101,17 @@
 		}
 		// console.log(this.subs);
 
-		size *= 2;
-		this.subs[size] = [];
-		for(let j = 0; j < this.sqs.sizeY; j += size) {
-			this.subs[size][j/size] = [];
-			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				if(i == 0 && j == 0) {
-				//	console.log(i, j);
-					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-				}
-			}
-		}
+		// size *= 2;
+		// this.subs[size] = [];
+		// for(let j = 0; j < this.sqs.sizeY; j += size) {
+		// 	this.subs[size][j/size] = [];
+		// 	for(let i = 0; i < this.sqs.sizeX; i += size) {
+		// 		if(i == 0 && j == 0) {
+		// 		//	console.log(i, j);
+		// 			this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
+		// 		}
+		// 	}
+		// }
 		// // console.log("solved");
 	};
 	SQSO.prototype.solveStep = function(size) {
@@ -149,27 +151,27 @@
 		console.log("Merging at:")
 		console.log(offsetX, offsetY, size);
 
-		let sqsetUL = this.getSubSqset(size/2, offsetY, offsetX);
+		let sqsetUL = this.getSubSqset(size/2, offsetX, offsetY);
 		//console.log("SQSET at:", offsetX, ", ", offsetY, "\n", sqsetUL);
-		let sqsetUR = this.getSubSqset(size/2, offsetY, offsetX+1);
+		let sqsetUR = this.getSubSqset(size/2, offsetX+1, offsetY);
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY, "\n", sqsetUR);
 
-		let sqsetBL = this.getSubSqset(size/2, offsetY+1, offsetX);
+		let sqsetBL = this.getSubSqset(size/2, offsetX, offsetY+1);
 		//console.log("SQSET at:", offsetX, ", ", offsetY+1, "\n", sqsetBL);
-		let sqsetBR = this.getSubSqset(size/2, offsetY+1, offsetX+1);
+		let sqsetBR = this.getSubSqset(size/2, offsetX+1, offsetY+1);
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY+1, "\n", sqsetBR);
 		
 		let sqsetU, sqsetB;
 		if(sqsetUL) {
-			sqsetU = this.merge(sqsetUL, sqsetUR);
+			sqsetU = this.merge(sqsetUL, sqsetUR, false);
 			//console.log(sqsetU);
 		} else { sqsetU = null; }
 		if(sqsetBL) {
-			sqsetB = this.merge(sqsetBL, sqsetBR);
+			sqsetB = this.merge(sqsetBL, sqsetBR, false);
 			//console.log(sqsetB);
 		} else { sqsetB = null; }
 
-		let sqset = this.merge(sqsetU, sqsetB);
+		let sqset = this.merge(sqsetU, sqsetB, false);
 
 		// let sqsB = this.merge(sqsBL, sqsBR);
 		// if((sqsU.solutions.length > 0) && (sqsB.solutions.length > 0)) {
@@ -187,7 +189,7 @@
 		return sqset;
 		
 	};
-	SQSO.prototype.merge = function(sqsetA, sqsetB) {
+	SQSO.prototype.merge = function(sqsetA, sqsetB, debug) {
 		if(!sqsetA) { throw new Error("Unable to merge empty sqset."); }
 		if(!sqsetB) { return sqsetA; }
 
@@ -196,8 +198,10 @@
 		let offsetX = Math.min(sqsetA.sqs.offsetX, sqsetB.sqs.offsetX);
 		let sizeX = Math.abs(sqsetA.sqs.offsetX - sqsetB.sqs.offsetX) + sqsetB.sqs.sizeX;
 
-		console.clear()
-		console.log(offsetY, sizeY, offsetX, sizeX);
+		if(debug) {
+			console.clear()
+			console.log(offsetY, sizeY, offsetX, sizeX);
+		}		
 
 		if(!sqsetA || !sqsetB) {
 			console.log("NULL");
@@ -209,68 +213,89 @@
 			return;
 		}
 
+		if(debug)
+			console.log(sqsetA);
+		if(debug)
+			console.log(sqsetB);
+		let isHori = (sqsetA.sqs.offsetY - sqsetB.sqs.offsetY) == 0;
+
+		console.clear();
 		for(let u = 0; u < sqsetA.solutions.length; u++) {
 			for(let v = 0; v < sqsetB.solutions.length; v++) {
-				console.log("OffsetX", offsetX, ", OffsetY", offsetY, ", sizeX", sizeX, ", sizeY", sizeY, ", SQSetA", u, ", SQSetB", v);
+				// if(debug)
+					console.log("(", offsetX, ", ", offsetY, "), ", sizeX, "x", sizeY, ", SQSetA", u, "/" , sqsetA.solutions.length, "SQSetB", v , "/", sqsetB.solutions.length);
 
 				// TODO: improve the merging algorithm.
-				let l = SQSS.restoreSQS(sqsetA.solutions[u], sqsetA.sqs.offsetX, sqsetA.sqs.offsetY, sqsetA.sqs.sizeX, sqsetA.sqs.sizeY, sqsetA.sqs.values);
-				let r = SQSS.restoreSQS(sqsetB.solutions[v], sqsetB.sqs.offsetX, sqsetB.sqs.offsetY, sqsetB.sqs.sizeX, sqsetB.sqs.sizeY, sqsetB.sqs.values);
-				let isHori = (l.offsetY - r.offsetY) == 0;
+				//let l = SQSS.restoreSQS(sqsetA.solutions[u], sqsetA.sqs.offsetX, sqsetA.sqs.offsetY, sqsetA.sqs.sizeX, sqsetA.sqs.sizeY, sqsetA.sqs.values);
+				//let r = SQSS.restoreSQS(sqsetB.solutions[v], sqsetB.sqs.offsetX, sqsetB.sqs.offsetY, sqsetB.sqs.sizeX, sqsetB.sqs.sizeY, sqsetB.sqs.values);
+				let l  = sqsetA.solutions[u];
+				let [lHori, lVert] = l.split(',');
+				let r  = sqsetB.solutions[v];
+				let [rHori, rVert] = r.split(',');
 				let valid = true;
 
+				if(debug) {
+					let lSQS = SQSS.restoreSQS(sqsetA.solutions[u], sqsetA.sqs.offsetX, sqsetA.sqs.offsetY, sqsetA.sqs.sizeX, sqsetA.sqs.sizeY, sqsetA.sqs.values);
+					let rSQS = SQSS.restoreSQS(sqsetB.solutions[v], sqsetB.sqs.offsetX, sqsetB.sqs.offsetY, sqsetB.sqs.sizeX, sqsetB.sqs.sizeY, sqsetB.sqs.values);
+					lSQS.print();
+					rSQS.print();
+				}
+
+
+				let numOfEdgesInRow = sqsetB.sqs.sizeX + 1;
+				let numOfRow = lVert.length / numOfEdgesInRow;
+				let numOfEdgesInColumn = sqsetB.sqs.sizeY + 1;
+				let numOfColumn = lHori.length / numOfEdgesInColumn;
+
 				if(isHori) {
-					let borderIndex = 2 * r.offsetX;
-					for(let o = 1; o < r.sizeY * 2 + 1; o += 2) {
-						if(l.cells[o][borderIndex - 2 * l.offsetX].state 
-							!= r.cells[o][borderIndex - 2 * r.offsetX].state)
-							valid = false;
+					for(let o = 0; o < numOfRow; ++o) {
+						valid &= lVert[o * numOfEdgesInRow + numOfEdgesInRow - 1] == rVert[o * numOfEdgesInRow];
 					}
 				} else {
-					let borderIndex = 2 * r.offsetY;
-					for(let o = 1; o < r.sizeX * 2 + 1; o += 2) {
-						if(l.cells[borderIndex - 2 * l.offsetY][o].state 
-							!= r.cells[borderIndex - 2 * r.offsetY][o].state)
-							valid = false;
+					for(let o = 0; o < numOfColumn; ++o) {
+						valid &= lHori[o * numOfEdgesInColumn + numOfEdgesInColumn - 1] == rHori[o * numOfEdgesInColumn];
 					}
 				}
 
+				if(debug)
+					console.log(valid);
+
 				if(valid) {
 					// Construct the new solutions.
-					let solution = this.getRegion(offsetX, offsetY, sizeX, sizeY);
+					let cellsHori = [];
+					let cellsVert = [];
 
-					//solution.print();
+					if(isHori) {
+						cellsHori.push(lHori);
+						cellsHori.push(rHori);
+						for(let o = 0; o < numOfRow; ++o) {
+							for(let _u = 0; _u <= sqsetA.sqs.sizeX; ++_u) {
+								cellsVert.push(lVert[_u + o * numOfEdgesInRow]);
+							}
+							for(let _u = 1; _u <= sqsetB.sqs.sizeX; ++_u) {
+								cellsVert.push(rVert[_u + o * numOfEdgesInRow]);
+							}
+						}
+					} else {
+						cellsVert.push(lVert);
+						cellsVert.push(rVert);
+						for(let o = 0; o < numOfColumn; ++o) {
+							for(let _u = 0; _u <= sqsetA.sqs.sizeY; ++_u) {
+								cellsHori.push(lHori[_u + o * numOfEdgesInColumn]);
+							}
+							for(let _u = 1; _u <= sqsetB.sqs.sizeY; ++_u) {
+								cellsHori.push(rHori[_u + o * numOfEdgesInColumn]);
+							}
+						}
+					}
+					if(debug)
+						console.log(cellsHori, cellsVert);
 
-					for(let y = 1; y < 2 * l.sizeY + 1; y+=2) {
-						for(let x = 0; x < 2 * l.sizeX + 1; x+=2) {
-							//console.log(y + 2 * l.offsetY - 2 * offsetY, x + 2 * l.offsetX - 2 * offsetX, y, x);
-							solution.cells[y + 2 * l.offsetY - 2 * offsetY][x + 2 * l.offsetX - 2 * offsetX].state
-								 = l.cells[y][x].state;
-						}
+					sqss = cellsHori.map(value => '' + value).join('') + ',' + cellsVert.map(value => '' + value).join('');
+					if(debug) {
+						let sqs = SQSS.restoreSQS(sqss, offsetX, offsetY, sizeX, sizeY ,sqsetA.sqs.values.concat(sqsetB.sqs.values))
+						sqs.print();
 					}
-					for(let y = 0; y < 2 * l.sizeY + 1; y+=2) {
-						for(let x = 1; x < 2 * l.sizeX + 1; x+=2) {
-							//console.log(y + 2 * l.offsetY - 2 * offsetY, x + 2 * l.offsetX - 2 * offsetX, y, x);
-							solution.cells[y + 2 * l.offsetY - 2 * offsetY][x + 2 * l.offsetX - 2 * offsetX].state
-								 = l.cells[y][x].state;
-						}
-					}
-					for(let y = 1; y < 2 * r.sizeY + 1; y+=2) {
-						for(let x = 0; x < 2 * r.sizeX + 1; x+=2) {
-							//console.log(y + 2 * r.offsetY - 2 * offsetY, x + 2 * r.offsetX - 2 * offsetX, y, x);
-							solution.cells[y + 2 * r.offsetY - 2 * offsetY][x + 2 * r.offsetX - 2 * offsetX].state
-								 = r.cells[y][x].state;
-						}
-					}
-					for(let y = 0; y < 2 * r.sizeY + 1; y+=2) {
-						for(let x = 1; x < 2 * r.sizeX + 1; x+=2) {
-							//console.log(y + 2 * r.offsetY - 2 * offsetY, x + 2 * r.offsetX - 2 * offsetX, y, x);
-							solution.cells[y + 2 * r.offsetY - 2 * offsetY][x + 2 * r.offsetX - 2 * offsetX].state
-								 = r.cells[y][x].state;
-						}
-					}
-
-					let sqss = SQSS.parseSQS(sizeX, sizeY, solution);
 					sqset.try(sqss);
 				}
 			}
@@ -369,7 +394,10 @@
 		this.solutions = [];
 	};
 	SQSET.prototype.try = function(solution) {
-		this.solutions.push(solution);
+		let resSQS = SQSS.restoreSQS(solution, this.sqs.offsetX, this.sqs.offsetY, this.sqs.sizeX, this.sqs.sizeY, this.sqs.values);
+		resSQS.print();
+		if(resSQS.verify())
+			this.solutions.push(solution);
 	};
 	SQSET.prototype.print = function() {
 		let result = "";
