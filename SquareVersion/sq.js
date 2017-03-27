@@ -107,14 +107,47 @@
 		});
 	};
 	SQS.prototype.print = function() {
-		var str = "";
-		for(let y = 0; y < this.sizeY; y++) {
-			for(let x = this.sizeX; x < this.sizeX; x++) {
-				str += (this.cells[2 * y + 1][2 * x + 1].value + " ");
+		function toFullSpaceCharactor(num) {
+			switch(num) {
+				case 0: return "０";
+				case 1: return "１";
+				case 2: return "２";
+				case 3: return "３";
+				case 4: return "４";
+				case 5: return "５";
+				case 6: return "６";
+				case 7: return "７";
+				case 8: return "８";
+				case 9: return "９";
+				default: return "";
+			}
+		};
+
+		var str = "========================\n";
+		str += `Cell state at %c${this.offsetX}, ${this.offsetY}\n%c`;
+		for(let y = 0; y < 2 * this.sizeY + 1; y++) {
+			for(let x = 0; x < 2 * this.sizeX + 1; x++) {
+				// Vert
+				if((x % 2 == 0) && (y % 2 == 0)) {
+					str += "╋";
+				}
+				// Cell
+				if((x % 2 == 1) && (y % 2 == 1)) {
+					str += "" + (this.cells[y][x].value == -1 ? "　" : toFullSpaceCharactor(this.cells[y][x].value));
+				}
+				// Hori Edge
+				if((x % 2 == 1) && (y % 2 == 0)) {
+					str += (this.cells[y][x].state ? "━" : "　");
+				}
+				// Vert Edge
+				if((x % 2 == 0) && (y % 2 == 1)) {
+					str += (this.cells[y][x].state ? "┃" : "　");
+				}
 			}
 			str += "\n";
 		}
-		console.log(str);
+		str += "========================";
+		console.log(str, "color: red; font-weight: bold;", "");
 	};
 	// Cell
 	SQS.prototype.CellEach = function(f) {

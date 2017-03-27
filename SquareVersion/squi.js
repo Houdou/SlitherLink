@@ -7,17 +7,20 @@
 		})
 	}
 
-	var SQUI = function(canvasID) {
+	var SQUI = function(canvasID, width, height) {
+		this.canvas = document.getElementById(canvasID);
+		canvas.width = window.innerWidth * width;
+		canvas.height = window.innerHeight * height;
 
 	};
 
 	var setupPaper = function() {
 		canvas = document.getElementById('canvas');
 		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+		canvas.height = window.innerHeight * 0.5;
 		window.onresize = ()=>{
-			paper.view.viewSize.width = canvas.width = window.innerWidth;;
-			paper.view.viewSize.height = canvas.height = window.innerHeight;;
+			paper.view.viewSize.width = canvas.width = window.innerWidth;
+			paper.view.viewSize.height = canvas.height = window.innerHeight * 0.5;
 		};
 		canvas.oncontextmenu = (event)=>{
 			event.preventDefault();
