@@ -87,29 +87,52 @@
 			}
 		}
 
-		size *= 2;
-		this.subs[size] = [];
-		for(let j = 0; j < this.sqs.sizeY; j += size) {
-			this.subs[size][j/size] = [];
-			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				if(i == 0 && j == 0)
-				//{
-				//	console.log(i, j);
-					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-				//}
-			}
-		}
-		// console.log(this.subs);
+		let _sqs = new SQ.SQS(3, 3, [0, 1, 0, 1, 0, 1, 0, 1, 0], 0, 0);
+		let _sqset = new SQSET(_sqs);
+		_sqset.solutions = ['000001100000,000001100000'];
+
+		let resSQS = SQSS.restoreSQS(_sqset.solutions[0], 0, 0, 3, 3, [0, 1, 0, 1, 0, 1, 0, 1, 0]);
+		resSQS.print();
+
+		let s = SQSO.verifySQS(resSQS);
+
 
 		// size *= 2;
 		// this.subs[size] = [];
 		// for(let j = 0; j < this.sqs.sizeY; j += size) {
 		// 	this.subs[size][j/size] = [];
 		// 	for(let i = 0; i < this.sqs.sizeX; i += size) {
-		// 		if(i == 0 && j == 0) {
+		// 		//if(i == 0 && j == 0)
+		// 		//{
 		// 		//	console.log(i, j);
 		// 			this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-		// 		}
+		// 		//}
+		// 	}
+		// }
+		// // console.log(this.subs);
+
+		// size *= 2;
+		// this.subs[size] = [];
+		// for(let j = 0; j < this.sqs.sizeY; j += size) {
+		// 	this.subs[size][j/size] = [];
+		// 	for(let i = 0; i < this.sqs.sizeX; i += size) {
+		// 		//if(i == 4 && j == 0)
+		// 		//{
+		// 		//	console.log(i, j);
+		// 			this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
+		// 		//}
+		// 	}
+		// }
+
+		// size *= 2;
+		// this.subs[size] = [];
+		// for(let j = 0; j < this.sqs.sizeY; j += size) {
+		// 	this.subs[size][j/size] = [];
+		// 	for(let i = 0; i < this.sqs.sizeX; i += size) {
+		// 		//if(i == 0 && j == 0) {
+		// 		//	console.log(i, j);
+		// 			this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
+		// 		//}
 		// 	}
 		// }
 		// // console.log("solved");
@@ -137,10 +160,10 @@
 			for(let [edgeID, edge] of solution.edges) {
 				edge.state = permu[i++] ? SQ.STATE.CONN : SQ.STATE.IMP;
 			}
-			if(this.verifySQS(solution)) {
+			//if(SQSO.verifySQS(solution)) {
 				let sqss = SQSS.parseSQS(1, 1, solution);
-				sqset.try(sqss);
-			}
+				//sqset.try(sqss);
+			//}
 		})
 		//console.log(sqset);
 		return sqset;
@@ -151,14 +174,14 @@
 		console.log("Merging at:")
 		console.log(offsetX, offsetY, size);
 
-		let sqsetUL = this.getSubSqset(size/2, offsetX, offsetY);
+		let sqsetUL = this.getSubSqset(size/2, offsetX / (size / 2), offsetY / (size / 2));
 		//console.log("SQSET at:", offsetX, ", ", offsetY, "\n", sqsetUL);
-		let sqsetUR = this.getSubSqset(size/2, offsetX+1, offsetY);
+		let sqsetUR = this.getSubSqset(size/2, offsetX / (size / 2) + 1, offsetY / (size / 2));
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY, "\n", sqsetUR);
 
-		let sqsetBL = this.getSubSqset(size/2, offsetX, offsetY+1);
+		let sqsetBL = this.getSubSqset(size/2, offsetX, offsetY / (size / 2) + 1);
 		//console.log("SQSET at:", offsetX, ", ", offsetY+1, "\n", sqsetBL);
-		let sqsetBR = this.getSubSqset(size/2, offsetX+1, offsetY+1);
+		let sqsetBR = this.getSubSqset(size/2, offsetX / (size / 2) + 1, offsetY / (size / 2) + 1);
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY+1, "\n", sqsetBR);
 		
 		let sqsetU, sqsetB;
@@ -190,7 +213,7 @@
 		
 	};
 	SQSO.prototype.merge = function(sqsetA, sqsetB, debug) {
-		if(!sqsetA) { throw new Error("Unable to merge empty sqset."); }
+		if(!sqsetA) { debugger; throw new Error("Unable to merge empty sqset."); }
 		if(!sqsetB) { return sqsetA; }
 
 		let offsetY = Math.min(sqsetA.sqs.offsetY, sqsetB.sqs.offsetY);
@@ -219,9 +242,12 @@
 			console.log(sqsetB);
 		let isHori = (sqsetA.sqs.offsetY - sqsetB.sqs.offsetY) == 0;
 
+
+		if(sqsetA.solutions.length * sqsetB.solutions.length > 10000) {debugger;}
 		console.clear();
 		for(let u = 0; u < sqsetA.solutions.length; u++) {
 			for(let v = 0; v < sqsetB.solutions.length; v++) {
+
 				// if(debug)
 					console.log("(", offsetX, ", ", offsetY, "), ", sizeX, "x", sizeY, ", SQSetA", u, "/" , sqsetA.solutions.length, "SQSetB", v , "/", sqsetB.solutions.length);
 
@@ -327,36 +353,42 @@
 			}
 		}
 	};
-	SQSO.prototype.verifySQS = function(sqs) {
+	SQSO.verifySQS = function(sqs) {
 		let valid = true;
 		// console.log(sqs.sizeX, sqs.sizeY);
 		sqs.VertEach((vert) => {
 			let result = vert.CountEdge();
 			if(result.CONN > 2) {
-				console.warn("Multiple connection on: " + absPos(vert));
+				//console.warn("Multiple connection on: " + absPos(vert));
 				valid = false;
 			}
 			if(result.CONN < 2 && result.UND == 0) {
-				// console.warn("Disconnection on: " + absPos(vert));
-				// valid = false;
+				if(vert.x != 0 && vert.x != 2 * vert.sqs.sizeX
+					&& vert.y != 0 && vert.y != 2 * vert.sqs.sizeY){
+					valid = false;
+				}
 			}
 		});
 		sqs.EdgeEach((edge) => {
-			// if(edge.state == SQ.STATE.CONN)
-				// console.log(this.checkLoop(edge));
+			if(edge.state == SQ.STATE.CONN) {
+				let s = this.checkLoop(edge);
+				console.log(s);
+			}
 		});
 		sqs.CellEach((cell) => {
 			let result = cell.CountEdge();
 			if(cell.value >= 0 && result.CONN != cell.value) {
-				console.warn("Insufficient edges on: " + absPos(cell));
+				//console.warn("Insufficient edges on: " + absPos(cell));
 				valid = false;
 			}
 		});
 		return valid;
 	};
-	SQSO.prototype.checkLoop = function(edge) {
-		var start, end;
-		for(var i in edge.Vert) {
+	SQSO.checkLoop = function(edge) {
+		console.log(edge);
+		//debugger;
+		let start, end;
+		for(let i in edge.Vert) {
 			if(!end) {
 				end = edge.Vert[i];
 				continue;
@@ -367,18 +399,18 @@
 			}
 		}
 		// console.log(start, end);
-		var nodeVert = start;
-		var nodeEdge;
-		var initialCheck = start.CountEdge();
-		if(initialCheck.CONN == 1) {
+		let nodeVert = start;
+		let nodeEdge;
+		let initialCheck = start.CountEdge();
+		if(initialCheck.CONN == 2) {
 			nodeEdge = nodeVert.FindEdgeInState(SQ.STATE.CONN)[0];
 			nodeVert = nodeEdge.getConnectedVert(nodeVert);
 			if(nodeVert.id != end.id) {
 				while(nodeVert.id != end.id) {
-					var _nodeEdge = nodeVert.getConnectedEdge(nodeEdge);
+					let _nodeEdge = nodeVert.getConnectedEdge(nodeEdge);
 					if(_nodeEdge) {
 						nodeEdge = _nodeEdge;
-						var _nodeVert = nodeEdge.getConnectedVert(nodeVert);
+						let _nodeVert = nodeEdge.getConnectedVert(nodeVert);
 						if(_nodeVert) {
 							nodeVert = _nodeVert;
 						} else { return false; }
@@ -395,21 +427,24 @@
 	};
 	SQSET.prototype.try = function(solution) {
 		let resSQS = SQSS.restoreSQS(solution, this.sqs.offsetX, this.sqs.offsetY, this.sqs.sizeX, this.sqs.sizeY, this.sqs.values);
-		resSQS.print();
-		if(resSQS.verify())
+		if(SQSO.verifySQS(resSQS)) {
+			//resSQS.print();
 			this.solutions.push(solution);
+		}
 	};
 	SQSET.prototype.print = function() {
 		let result = "";
-		this.solutions.forEach((solutionSQS) => {
+		console.clear();
+		this.solutions.forEach((sqss) => {
 			result += "-----------------\n";
-			solutionSQS.print();
+			let resSQS = SQSS.restoreSQS(sqss, this.sqs.offsetX, this.sqs.offsetY, this.sqs.sizeX, this.sqs.sizeY, this.sqs.values);
+			resSQS.print();
 
 			result += "\n";
 		});
 
 		// console.log(result);
-	}
+	};
 	SQSO.SQSET = SQSET;
 
 	SQ.SQSO = SQSO;
