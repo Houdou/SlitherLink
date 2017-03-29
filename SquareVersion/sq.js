@@ -129,19 +129,19 @@
 			for(let x = 0; x < 2 * this.sizeX + 1; x++) {
 				// Vert
 				if((x % 2 == 0) && (y % 2 == 0)) {
-					str += ".";
+					str += "╋";
 				}
 				// Cell
 				if((x % 2 == 1) && (y % 2 == 1)) {
-					str += "" + (this.cells[y][x].value <= -1 ? " " : this.cells[y][x].value);
+					str += "" + (this.cells[y][x].value == -1 ? "　" : toFullSpaceCharactor(this.cells[y][x].value));
 				}
 				// Hori Edge
 				if((x % 2 == 1) && (y % 2 == 0)) {
-					str += (this.cells[y][x].state ? "-" : " ");
+					str += (this.cells[y][x].state ? "━" : "　");
 				}
 				// Vert Edge
 				if((x % 2 == 0) && (y % 2 == 1)) {
-					str += (this.cells[y][x].state ? "|" : " ");
+					str += (this.cells[y][x].state ? "┃" : "　");
 				}
 			}
 			str += "\n";

@@ -84,15 +84,27 @@
 		// 	4, B, 3, 4, B, B, B, 2, 4, B,
 		// 	5, 4, 4, B, B, B, B, B, B,
 		// ]
+
+
 		var values = [
-		3, B, B, B, 1, B, 2,
-		B, 2, B, 1, B, 1, 3,
-		3, 0, 2, 2, B, B, 2,
-		B, B, B, B, 1, 2, 3,
-		3, B, B, B, B, B, 2,
-		B, B, B, B, 2, B, B,
-		3, B, B, 3, 1, B, 3,
+		2, 2, 2, B, B, 2, B,
+		B, 2, 2, B, B, B, 3,
+		B, B, B, 3, B, 0, B,
+		B, 2, 0, B, B, 1, B,
+		2, B, B, 3, B, B, 3,
+		B, 2, 2, B, 3, B, 3,
+		3, B, B, B, B, 2, B
 		];
+		
+		// var values = [
+		// 3, B, B, B, 1, B, 2,
+		// B, 2, B, 1, B, 1, 3,
+		// 3, 0, 2, 2, B, B, 2,
+		// B, B, B, B, 1, 2, 3,
+		// 3, B, B, B, B, B, 2,
+		// B, B, B, B, 2, B, B,
+		// 3, B, B, 3, 1, B, 3,
+		// ];
 		let size = Math.sqrt(values.length);
 		sq.sqs = new SQ.SQS(7, 7, values);
 		// console.log(sq.sqs);
