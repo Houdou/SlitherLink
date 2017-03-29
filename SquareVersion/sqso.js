@@ -168,30 +168,33 @@
 		let sqsetBR = this.getSubSqset(size/2, offsetX / (size / 2) + 1, offsetY / (size / 2) + 1);
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY+1, "\n", sqsetBR);
 		
+
+		// Improving merging sequence
+		if(sqsetUR == undefined && sqsetBL == undefined)
+			return sqsetUL;
+		if(sqsetUR == undefined && sqsetBR == undefined)
+			return this.merge(sqsetUL, sqsetBL, debug);
+		if(sqsetBL == undefined && sqsetBR == undefined)
+			return this.merge(sqsetUL, sqsetUR, debug);
+
+		let horiSplitCount = sqsetUL.solutions.length * (sqsetUR != undefined ? sqsetUR.solutions.length : 1)
+			+ (sqsetBL != undefined ? sqsetBL.solutions.length : 1) * (sqsetBR != undefined ? sqsetBR.solutions.length : 1);
+		let vertSplitCount = sqsetUL.solutions.length * (sqsetBL != undefined) ? sqsetBL.solutions.length : 1
+			+ (sqsetUR != undefined ? sqsetUR.solutions.length : 1) * (sqsetBR != undefined ? sqsetBR.solutions.length : 1);
+
 		let sqsetU, sqsetB;
-		if(sqsetUL) {
+		
+		if(horiSplitCount < vertSplitCount)
 			sqsetU = this.merge(sqsetUL, sqsetUR, debug);
-			//console.log(sqsetU);
-		} else { sqsetU = null; }
-		if(sqsetBL) {
+		else
+			sqsetU = this.merge(sqsetUL, sqsetBL, debug);
+
+		if(horiSplitCount < vertSplitCount)
 			sqsetB = this.merge(sqsetBL, sqsetBR, debug);
-			//console.log(sqsetB);
-		} else { sqsetB = null; }
+		else
+			sqsetB = this.merge(sqsetUR, sqsetBR, debug);
 
 		let sqset = this.merge(sqsetU, sqsetB, debug);
-
-		// let sqsB = this.merge(sqsBL, sqsBR);
-		// if((sqsU.solutions.length > 0) && (sqsB.solutions.length > 0)) {
-		// 	sqs = this.merge(sqsU, sqsB);
-		// } else {
-		// 	throw new Error("Unsolvable map");
-		// }
-		// for(let u = 0; u < sqsUL.solutions.length; u++) {
-		// for(let i = 0; i < sqsUR.solutions.length; i++) {
-		// for(let o = 0; o < sqsBL.solutions.length; o++) {
-		// for(let p = 0; p < sqsBR.solutions.length; p++) {
-		// 	let sqsU = 
-		// }}}}
 
 		return sqset;
 		
