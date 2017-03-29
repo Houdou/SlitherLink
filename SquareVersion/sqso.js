@@ -177,22 +177,20 @@
 		if(sqsetBL == undefined && sqsetBR == undefined)
 			return this.merge(sqsetUL, sqsetUR, debug);
 
-		let horiSplitCount = sqsetUL.solutions.length * (sqsetUR != undefined ? sqsetUR.solutions.length : 1)
-			+ (sqsetBL != undefined ? sqsetBL.solutions.length : 1) * (sqsetBR != undefined ? sqsetBR.solutions.length : 1);
-		let vertSplitCount = sqsetUL.solutions.length * (sqsetBL != undefined) ? sqsetBL.solutions.length : 1
-			+ (sqsetUR != undefined ? sqsetUR.solutions.length : 1) * (sqsetBR != undefined ? sqsetBR.solutions.length : 1);
+		let horiMergeCount = sqsetUL.solutions.length * sqsetUR.solutions.length
+			+ sqsetBL.solutions.length * sqsetBR.solutions.length;
+		let vertMergeCount = sqsetUL.solutions.length * sqsetBL.solutions.length
+			+ sqsetUR.solutions.length * sqsetBR.solutions.length;
 
 		let sqsetU, sqsetB;
 		
-		if(horiSplitCount < vertSplitCount)
+		if(horiMergeCount < vertMergeCount) {
 			sqsetU = this.merge(sqsetUL, sqsetUR, debug);
-		else
-			sqsetU = this.merge(sqsetUL, sqsetBL, debug);
-
-		if(horiSplitCount < vertSplitCount)
 			sqsetB = this.merge(sqsetBL, sqsetBR, debug);
-		else
+		} else {
+			sqsetU = this.merge(sqsetUL, sqsetBL, debug);
 			sqsetB = this.merge(sqsetUR, sqsetBR, debug);
+		}			
 
 		let sqset = this.merge(sqsetU, sqsetB, debug);
 
