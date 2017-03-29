@@ -100,43 +100,18 @@
 
 		//console.log(this.subs[1]);
 
-
-		size *= 2;
-		this.subs[size] = [];
-		for(let j = 0; j < this.sqs.sizeY; j += size) {
-			this.subs[size][j/size] = [];
-			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				//if(i == 0 && j == 0)
-				//{
-				//	console.log(i, j);
-					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-				//}
-			}
-		}
-		// // console.log(this.subs);
-
-		size *= 2;
-		this.subs[size] = [];
-		for(let j = 0; j < this.sqs.sizeY; j += size) {
-			this.subs[size][j/size] = [];
-			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				// if(i == 4 && j == 0)
-				//{
-				//	console.log(i, j);
-					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-				//}
-			}
-		}
-
-		size *= 2;
-		this.subs[size] = [];
-		for(let j = 0; j < this.sqs.sizeY; j += size) {
-			this.subs[size][j/size] = [];
-			for(let i = 0; i < this.sqs.sizeX; i += size) {
-				//if(i == 0 && j == 0) {
-				//	console.log(i, j);
-					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-				//}
+		while(size <= Math.max(so.sqs.sizeX, so.sqs.sizeY)) {
+			size *= 2;
+			this.subs[size] = [];
+			for(let j = 0; j < this.sqs.sizeY; j += size) {
+				this.subs[size][j/size] = [];
+				for(let i = 0; i < this.sqs.sizeX; i += size) {
+					//if(i == 0 && j == 0)
+					//{
+					//	console.log(i, j);
+						this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
+					//}
+				}
 			}
 		}
 
