@@ -76,6 +76,8 @@
 			return this.subs[size][v][u];
 	};
 	SQSO.prototype.solve = function() {
+		this.startTime = (new Date()).getTime();
+
 		this.subs[0] = [];
 		// Start from every single cell
 		let size = 1;
@@ -137,6 +139,8 @@
 				//}
 			}
 		}
+
+		this.endTime = (new Date()).getTime();
 		// // console.log("solved");
 	};
 	SQSO.prototype.solveStep = function(size) {
@@ -410,6 +414,24 @@
 					return valid;
 				}
 				if(bottom && !left && !right && 2 * vert.sqs.offsetY + vert.y == 2 * so.sqs.sizeY) {
+					valid = false;
+					return valid;
+				}
+
+				//Border corner
+				if(left && top && 2 * vert.sqs.offsetX + vert.x == 0 && 2 * vert.sqs.offsetY + vert.y == 0) {
+					valid = false;
+					return valid;
+				}
+				if(right && top && 2 * vert.sqs.offsetX + vert.x == 2 * so.sqs.sizeX && 2 * vert.sqs.offsetY + vert.y == 0) {
+					valid = false;
+					return valid;
+				}
+				if(left && bottom && 2 * vert.sqs.offsetX + vert.x == 0 && 2 * vert.sqs.offsetY + vert.y == 2 * so.sqs.sizeY) {
+					valid = false;
+					return valid;
+				}
+				if(right && bottom && 2 * vert.sqs.offsetX + vert.x == 2 * so.sqs.sizeX && 2 * vert.sqs.offsetY + vert.y == 2 * so.sqs.sizeY) {
 					valid = false;
 					return valid;
 				}

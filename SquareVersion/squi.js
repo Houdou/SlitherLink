@@ -86,15 +86,15 @@
 		// ]
 
 
-		var values = [
-		2, 2, 2, B, B, 2, B,
-		B, 2, 2, B, B, B, 3,
-		B, B, B, 3, B, 0, B,
-		B, 2, 0, B, B, 1, B,
-		2, B, B, 3, B, B, 3,
-		B, 2, 2, B, 3, B, 3,
-		3, B, B, B, B, 2, B
-		];
+		// var values = [
+		// 2, 2, 2, B, B, 2, B,
+		// B, 2, 2, B, B, B, 3,
+		// B, B, B, 3, B, 0, B,
+		// B, 2, 0, B, B, 1, B,
+		// 2, B, B, 3, B, B, 3,
+		// B, 2, 2, B, 3, B, 3,
+		// 3, B, B, B, B, 2, B
+		// ];
 		
 		// var values = [
 		// 3, B, B, B, 1, B, 2,
@@ -105,8 +105,35 @@
 		// B, B, B, B, 2, B, B,
 		// 3, B, B, 3, 1, B, 3,
 		// ];
+		var values = [
+		3, B, 2, B, B, 2, B, 2, 1, 1, B, B, B, B, B, B, B, 2, 3, B, B, 3, B, B, 2,
+		B, B, B, 2, B, B, 2, 2, B, 2, 2, B, B, 1, B, B, 1, B, B, B, 1, 0, B, B, 2,
+		B, 0, 2, 2, B, 1, B, 2, 2, 2, B, B, 2, B, 2, 3, 1, B, 1, B, 2, 2, B, B, B,
+		B, 3, B, B, B, 1, B, 2, B, 2, B, 3, B, B, B, B, B, B, 2, B, B, B, B, B, 3,
+		2, B, B, 2, 2, B, B, 2, 2, B, 2, B, B, 2, B, 2, B, 3, 1, B, B, B, B, 2, B,
+		B, B, B, 2, B, 2, B, B, B, 2, B, 3, B, 2, B, 1, 1, B, 1, 1, B, 3, B, B, B,
+		B, 2, 3, 1, B, B, 2, B, B, B, 1, B, B, 1, 3, B, B, 2, B, 2, 1, B, 0, 2, B,
+		B, B, 3, B, B, 2, 2, B, B, B, B, 1, 2, B, 2, B, B, 1, B, 2, B, 3, 3, B, 3,
+		2, 2, B, 3, B, 2, B, B, 2, 1, B, 1, B, 1, B, 3, B, 3, B, 2, B, B, B, B, B,
+		B, B, B, B, B, 2, B, B, B, 3, 2, B, 3, 1, 2, B, B, B, 0, B, 2, B, 2, B, B,
+		B, B, 1, 3, B, B, 3, B, B, 3, B, B, 2, B, B, B, B, B, 3, 2, B, B, 1, 3, B,
+		2, B, 2, B, B, 1, B, B, B, 2, 0, B, B, B, 2, B, B, 1, B, B, B, B, 2, 3, B,
+		B, B, 1, 1, 1, B, 3, B, 2, 2, B, 3, B, B, B, B, 2, B, B, 2, B, B, B, B, B,
+		B, 3, B, 2, B, B, 1, B, 2, 2, B, B, B, 3, 3, 3, B, 3, B, 3, B, 2, B, 3, 2,
+		3, 2, B, 2, 2, 3, B, 1, B, B, 2, B, 1, B, B, B, 2, B, B, 1, 2, B, B, 0, 2,
+		B, 1, 2, B, 2, B, B, 2, B, 3, B, B, 3, 2, B, B, 2, B, B, B, B, B, 2, 2, B,
+		B, 1, B, B, B, 2, 3, B, 2, 1, B, B, 2, B, B, 1, B, B, B, 3, B, 2, 1, B, 1,
+		3, B, B, 2, B, B, 2, 1, B, B, B, 2, 3, B, 2, 1, 2, B, B, B, B, 1, 3, B, 1,
+		B, B, B, B, B, 2, 3, 3, 2, 2, 2, 3, 1, 1, 1, B, 2, B, B, 3, 2, B, B, 2, 3,
+		1, B, B, 2, 1, B, B, B, B, B, B, B, B, B, 2, B, B, 2, B, 1, B, 3, B, 2, B,
+		2, 0, B, 3, B, 3, B, 3, B, 1, B, 3, 2, B, B, B, B, B, B, B, B, B, B, B, B,
+		2, B, 2, 2, 1, B, B, B, B, 2, 2, 2, 0, 2, B, B, 2, 3, 2, 2, B, 2, B, 3, B,
+		2, B, B, 2, B, 1, B, 2, 3, B, 2, B, B, B, 2, 2, 2, 2, B, B, 3, B, 3, B, 2,
+		B, B, B, 2, 1, B, B, 1, 2, B, B, B, B, B, B, B, 2, B, B, B, B, B, 1, B, B,
+		B, 2, 2, B, 3, 3, 2, B, B, B, 2, B, 2, 3, B, B, B, 2, 2, B, 3, 1, B, B, 3,
+		];
 		let size = Math.sqrt(values.length);
-		sq.sqs = new SQ.SQS(7, 7, values);
+		sq.sqs = new SQ.SQS(25, 25, values);
 		// console.log(sq.sqs);
 		// sq.sqs.print();
 		paper.view.center = new Point(size * SLEN, size * SLEN);
