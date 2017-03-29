@@ -126,17 +126,17 @@
 			}
 		}
 
-		// size *= 2;
-		// this.subs[size] = [];
-		// for(let j = 0; j < this.sqs.sizeY; j += size) {
-		// 	this.subs[size][j/size] = [];
-		// 	for(let i = 0; i < this.sqs.sizeX; i += size) {
-		// 		//if(i == 0 && j == 0) {
-		// 		//	console.log(i, j);
-		// 			this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
-		// 		//}
-		// 	}
-		// }
+		size *= 2;
+		this.subs[size] = [];
+		for(let j = 0; j < this.sqs.sizeY; j += size) {
+			this.subs[size][j/size] = [];
+			for(let i = 0; i < this.sqs.sizeX; i += size) {
+				//if(i == 0 && j == 0) {
+				//	console.log(i, j);
+					this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
+				//}
+			}
+		}
 		// // console.log("solved");
 	};
 	SQSO.prototype.solveStep = function(size) {
@@ -184,7 +184,7 @@
 		let sqsetUR = this.getSubSqset(size/2, offsetX / (size / 2) + 1, offsetY / (size / 2));
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY, "\n", sqsetUR);
 
-		let sqsetBL = this.getSubSqset(size/2, offsetX, offsetY / (size / 2) + 1);
+		let sqsetBL = this.getSubSqset(size/2, offsetX / (size / 2), offsetY / (size / 2) + 1);
 		//console.log("SQSET at:", offsetX, ", ", offsetY+1, "\n", sqsetBL);
 		let sqsetBR = this.getSubSqset(size/2, offsetX / (size / 2) + 1, offsetY / (size / 2) + 1);
 		//console.log("SQSET at:", offsetX+1, ", ", offsetY+1, "\n", sqsetBR);
@@ -271,10 +271,10 @@
 				let valid = true;
 
 				if(debug) {
-					//let lSQS = SQSS.restoreSQS(sqsetA.solutions[u], sqsetA.sqs.offsetX, sqsetA.sqs.offsetY, sqsetA.sqs.sizeX, sqsetA.sqs.sizeY, sqsetA.sqs.values);
-					//let rSQS = SQSS.restoreSQS(sqsetB.solutions[v], sqsetB.sqs.offsetX, sqsetB.sqs.offsetY, sqsetB.sqs.sizeX, sqsetB.sqs.sizeY, sqsetB.sqs.values);
-					//lSQS.print();
-					//rSQS.print();
+					let lSQS = SQSS.restoreSQS(sqsetA.solutions[u], sqsetA.sqs.offsetX, sqsetA.sqs.offsetY, sqsetA.sqs.sizeX, sqsetA.sqs.sizeY, sqsetA.sqs.values);
+					let rSQS = SQSS.restoreSQS(sqsetB.solutions[v], sqsetB.sqs.offsetX, sqsetB.sqs.offsetY, sqsetB.sqs.sizeX, sqsetB.sqs.sizeY, sqsetB.sqs.values);
+					lSQS.print();
+					rSQS.print();
 				}
 
 
@@ -386,7 +386,7 @@
 				valid = false;
 				return valid;
 			}
-			if(result.CONN < 2 && result.UND == 0) {
+			if(result.CONN > 0 && result.CONN < 2 && result.UND == 0) {
 				let left = vert.x == 0 ? 1 : 0;
 				let right = vert.x == 2 * vert.sqs.sizeX ? 1 : 0;
 				let top = vert.y == 0 ? 1 : 0;
@@ -397,7 +397,7 @@
 					return valid;
 				}
 
-				if(left && !top && !bottom && vert.sqs.offsetX + vert.x == 0) {
+				if(left && !top && !bottom && 2 * vert.sqs.offsetX + vert.x == 0) {
 					valid = false;
 					return valid;
 				}
@@ -405,7 +405,7 @@
 					valid = false;
 					return valid;
 				}
-				if(top && !left && !right && vert.sqs.offsetY + vert.y == 0) {
+				if(top && !left && !right && 2 * vert.sqs.offsetY + vert.y == 0) {
 					valid = false;
 					return valid;
 				}
@@ -415,26 +415,52 @@
 				}
 			}
 		});
-		sqs.EdgeEach((edge) => {
-			if(edge.state == SQ.STATE.CONN) {
-				let s = this.checkLoop(edge);
-				if(s) {
-					valid = false;
+		if(valid) {
+			sqs.EdgeEach((edge) => {
+				edge.checked = false;
+			});
+
+			let ignoreResultLoop = (sqs.sizeX == so.sqs.sizeX && sqs.sizeY == so.sqs.sizeY);
+			if(!ignoreResultLoop) {
+				sqs.EdgeEach((edge) => {
+					if(edge.checked) return;
+					if(edge.state == SQ.STATE.CONN) {
+						let s = this.checkLoop(edge);
+						if(s) {
+							valid = false;
+							return valid;
+						}
+					}
+				});
+			} else {
+				let loopCount = 0;
+				sqs.EdgeEach((edge) => {
+					if(edge.checked) return;
+					if(edge.state == SQ.STATE.CONN) {
+						let s = this.checkLoop(edge);
+						if(s) { ++loopCount; }
+					}
+				});
+				if(loopCount > 1) {
+					valid = false
 					return valid;
 				}
 			}
-		});
-		sqs.CellEach((cell) => {
-			let result = cell.CountEdge();
-			if(cell.value >= 0 && result.CONN != cell.value) {
-				//console.warn("Insufficient edges on: " + absPos(cell));
-				valid = false;
-				return valid;
-			}
-		});
+		}
+		if(valid) {
+			sqs.CellEach((cell) => {
+				let result = cell.CountEdge();
+				if(cell.value >= 0 && result.CONN != cell.value) {
+					//console.warn("Insufficient edges on: " + absPos(cell));
+					valid = false;
+					return valid;
+				}
+			});
+		}
 		return valid;
 	};
 	SQSO.checkLoop = function(edge) {
+		edge.checked = true;
 		//console.log(edge);
 		//debugger;
 		let start, end;
@@ -457,6 +483,7 @@
 				let _nodeEdge = nodeVert.getConnectedEdge(nodeEdge);
 				if(_nodeEdge) {
 					nodeEdge = _nodeEdge;
+					nodeEdge.checked = true;
 					let _nodeVert = nodeEdge.getConnectedVert(nodeVert);
 					if(_nodeVert) {
 						nodeVert = _nodeVert;
