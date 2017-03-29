@@ -177,7 +177,7 @@
 	SQSO.prototype.solveRegion = function(offsetX, offsetY, size, debug) {
 		if(size < 2) { throw new Error("Wrong cells size."); return; }
 
-		if(debug)
+		//if(debug)
 			console.clear();
 
 		console.log("Merging at:")
@@ -253,7 +253,7 @@
 
 
 		//if(sqsetA.solutions.length * sqsetB.solutions.length > 50000) {debugger;}
-		//console.clear();
+		console.clear();
 		let consoleCount = 0;
 		for(let u = 0; u < sqsetA.solutions.length; u++) {
 			for(let v = 0; v < sqsetB.solutions.length; v++) {
