@@ -214,7 +214,7 @@
 		let sqsetCR = this.getSubSqset(size/3, offsetX / (size / 3) + 2, offsetY / (size / 3) + 1);
 		let sqsetBL = this.getSubSqset(size/3, offsetX / (size / 3) + 0, offsetY / (size / 3) + 2);
 		let sqsetBC = this.getSubSqset(size/3, offsetX / (size / 3) + 1, offsetY / (size / 3) + 2);
-		let sqsetBR = this.getSubSqset(size/3, offsetX / (size / 3) + 1, offsetY / (size / 3) + 2);
+		let sqsetBR = this.getSubSqset(size/3, offsetX / (size / 3) + 2, offsetY / (size / 3) + 2);
 
 		let p00 = sqsetUL != undefined ? this.evaluate(size, size, sqsetUL.sqs.values) : 1;
 		let p01 = sqsetUC != undefined ? this.evaluate(size, size, sqsetUC.sqs.values) : 1;
