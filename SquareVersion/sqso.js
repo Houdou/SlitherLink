@@ -100,20 +100,20 @@
 
 		//console.log(this.subs[1]);
 
-		while(size <= Math.max(so.sqs.sizeX, so.sqs.sizeY)) {
-			size *= 2;
+		//while(size <= Math.max(so.sqs.sizeX, so.sqs.sizeY)) {
+			size *= 3;
 			this.subs[size] = [];
 			for(let j = 0; j < this.sqs.sizeY; j += size) {
 				this.subs[size][j/size] = [];
 				for(let i = 0; i < this.sqs.sizeX; i += size) {
-					//if(i == 0 && j == 0)
+					if(i == 0 && j == 0)
 					//{
 					//	console.log(i, j);
-						this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
+						this.subs[size][j/size][i/size] = this.solveRegion3(i, j, size, true);
 					//}
 				}
 			}
-		}
+		//}
 
 		this.endTime = (new Date()).getTime();
 		// // console.log("solved");
@@ -197,6 +197,214 @@
 		return sqset;
 		
 	};
+	SQSO.prototype.solveRegion3 = function(offsetX, offsetY, size, debug) {
+		if(size < 2) { throw new Error("Wrong cells size."); return; }
+
+		if(debug)
+			console.clear();
+
+		console.log("Merging at:")
+		console.log(offsetX, offsetY, size);
+
+		let sqsetUL = this.getSubSqset(size/3, offsetX / (size / 3) + 0, offsetY / (size / 3) + 0);
+		let sqsetUC = this.getSubSqset(size/3, offsetX / (size / 3) + 1, offsetY / (size / 3) + 0);
+		let sqsetUR = this.getSubSqset(size/3, offsetX / (size / 3) + 2, offsetY / (size / 3) + 0);
+		let sqsetCL = this.getSubSqset(size/3, offsetX / (size / 3) + 0, offsetY / (size / 3) + 1);
+		let sqsetCC = this.getSubSqset(size/3, offsetX / (size / 3) + 1, offsetY / (size / 3) + 1);
+		let sqsetCR = this.getSubSqset(size/3, offsetX / (size / 3) + 2, offsetY / (size / 3) + 1);
+		let sqsetBL = this.getSubSqset(size/3, offsetX / (size / 3) + 0, offsetY / (size / 3) + 2);
+		let sqsetBC = this.getSubSqset(size/3, offsetX / (size / 3) + 1, offsetY / (size / 3) + 2);
+		let sqsetBR = this.getSubSqset(size/3, offsetX / (size / 3) + 1, offsetY / (size / 3) + 2);
+
+		let p00 = sqsetUL != undefined ? this.evaluate(size, size, sqsetUL.sqs.values) : 1;
+		let p01 = sqsetUC != undefined ? this.evaluate(size, size, sqsetUC.sqs.values) : 1;
+		let p02 = sqsetUR != undefined ? this.evaluate(size, size, sqsetUR.sqs.values) : 1;
+		let p10 = sqsetCL != undefined ? this.evaluate(size, size, sqsetCL.sqs.values) : 1;
+		let p11 = sqsetCC != undefined ? this.evaluate(size, size, sqsetCC.sqs.values) : 1;
+		let p12 = sqsetCR != undefined ? this.evaluate(size, size, sqsetCR.sqs.values) : 1;
+		let p20 = sqsetBL != undefined ? this.evaluate(size, size, sqsetBL.sqs.values) : 1;
+		let p21 = sqsetBC != undefined ? this.evaluate(size, size, sqsetBC.sqs.values) : 1;
+		let p22 = sqsetBR != undefined ? this.evaluate(size, size, sqsetBR.sqs.values) : 1;
+
+		if(debug) {
+			console.log("p values")
+			console.log(p00, p01, p02);
+			console.log(p10, p11, p12);
+			console.log(p20, p21, p22);
+		}
+		
+		let sqset;
+		if(sqsetBR != undefined) {
+			// Hori 3 Vert 3
+			let pul = p00 * p01 * p10;
+			let pur = p01 * p02 * p12;
+			let pbl = p10 * p20 * p21;
+			let pbr = p12 * p21 * p22;
+			let min = Math.min(pul, pur, pbl, pbr);
+
+			if(min == pul) {
+
+				if(debug) {
+					console.log("PUL");
+				}
+				let sqset00;
+				if(p00 * p01 + p10 * p11 < p00 * p10 + p01 * p11) {
+					sqset00 = this.merge(this.merge(sqsetUL, sqsetUC, debug),
+						this.merge(sqsetCL, sqsetCC, debug), debug);
+				} else {
+					sqset00 = this.merge(this.merge(sqsetUL, sqsetCL, debug),
+						this.merge(sqsetUC, sqsetCC, debug), debug);
+				}
+				let sqset01 = this.merge(sqsetUR, sqsetCR, debug);
+				let sqset10 = this.merge(sqsetBL, sqsetBC, debug);
+				
+				sqset = this.merge(
+					this.merge(sqset00, sqset01, debug),
+					this.merge(sqset10, sqsetBR, debug), debug);
+
+			} else if(min == pur) {
+
+				if(debug) {
+					console.log("PUR");
+				}
+				let sqset00 = this.merge(sqsetUL, sqsetCL, debug);
+				let sqset01;
+				if(p01 * p02 + p11 * p12 < p01 * p11 + p02 * p12) {
+					sqset01 = this.merge(this.merge(sqsetUL, sqsetUC, debug),
+						this.merge(sqsetCL, sqsetCC, debug), debug);
+				} else {
+					sqset01 = this.merge(this.merge(sqsetUL, sqsetCL, debug),
+						this.merge(sqsetUC, sqsetCC, debug), debug);
+				}
+				let sqset11 = this.merge(sqsetBC, sqsetBR, debug);
+				
+				sqset = this.merge(
+					this.merge(sqset00, sqset01, debug),
+					this.merge(sqsetBL, sqset11, debug), debug);
+
+			} else if(min == pbl) {
+
+				if(debug) {
+					console.log("PBL");
+				}
+				let sqset00 = this.merge(sqsetUL, sqsetUC, debug);
+				let sqset10;
+				if(p10 * p11 + p20 * p21 < p10 * p20 + p11 * p21) {
+					sqset10 = this.merge(this.merge(sqsetCL, sqsetCC, debug),
+						this.merge(sqsetBL, sqsetBC, debug), debug);
+				} else {
+					sqset10 = this.merge(this.merge(sqsetCL, sqsetBL, debug),
+						this.merge(sqsetCC, sqsetBC, debug), debug);
+				}
+				let sqset11 = this.merge(sqsetCR, sqsetBR, debug);
+				
+				sqset = this.merge(
+					this.merge(sqset00, sqsetUR, debug),
+					this.merge(sqset10, sqset11, debug), debug);
+
+			} else if(min == pbr) {
+
+				if(debug) {
+					console.log("PBR");
+				}
+				let sqset01 = this.merge(sqsetUC, sqsetUR, debug);
+				let sqset10 = this.merge(sqsetCL, sqsetBL, debug);
+				let sqset11;
+				if(p11 * p12 + p21 * p22 < p11 * p21 + p12 * p22) {
+					sqset11 = this.merge(this.merge(sqsetCC, sqsetCR, debug),
+						this.merge(sqsetBC, sqsetBR, debug), debug);
+				} else {
+					sqset11 = this.merge(this.merge(sqsetCC, sqsetBC, debug),
+						this.merge(sqsetCR, sqsetBR, debug), debug);
+				}
+				
+				sqset = this.merge(
+					this.merge(sqsetUL, sqset01, debug),
+					this.merge(sqset10, sqset11, debug), debug);
+			}
+		} else {
+			if(sqsetBC == undefined && sqsetCR != undefined) {
+				// Hori 3 Vert 2
+				let pl = p00 * p10;
+				let pr = p02 * p12;
+				debugger;
+
+			} else if(sqsetBC != undefined && sqsetCR == undefined) {
+				// Hori 2 Vert 3
+				let pu = p00 * p01;
+				let pb = p20 * p21;
+				debugger;
+				
+			} else {
+				if(sqsetBL != undefined) {
+					// Hori 1 Vert 3
+					if(p00 < p02) {
+						sqset = this.merge(this.merge(sqsetUL, sqsetCL, debug), sqsetBL, debug);
+					} else {
+						sqset = this.merge(sqsetUL, this.merge(sqsetCL, sqsetBL, debug), debug);
+					}
+				} else if(sqsetCC != undefined) {
+					// Hori 2 Vert 2
+					if(p00 * p01 + p10 * p11 < p00 * p10 + p01 * p11) {
+						sqset = this.merge(this.merge(sqsetUL, sqsetUC, debug),
+							this.merge(sqsetCL, sqsetCC, debug), debug);
+					} else {
+						sqset = this.merge(this.merge(sqsetUL, sqsetCL, debug),
+							this.merge(sqsetUC, sqsetCC, debug), debug);
+					}
+				} else if(sqsetUR != undefined) {
+					// Hori 3 Vert 1
+					if(p00 < p20) {
+						sqset = this.merge(this.merge(sqsetUL, sqsetCL, debug), sqsetBL, debug);
+					} else {
+						sqset = this.merge(sqsetUL, this.merge(sqsetCL, sqsetBL, debug), debug);
+					}
+				} else {
+					if(sqsetCL != undefined) {
+						// Hori 1 Vert 2
+						sqset = this.merge(sqsetUL, sqsetCL, debug);
+					} else if(sqsetUC != undefined) {
+						// Hori 2 Vert 1
+						sqset = this.merge(sqsetUL, sqsetUC, debug);
+					} else if(sqsetUL != undefined){
+						// Hori 1 Vert 1
+						sqset = sqsetUL;
+					} else {
+						throw new Error(`Empty SQSet, at ${offsetX}, ${offsetY}`);
+					}
+				}					
+			}
+		}
+
+		if(debug) {
+			debugger;
+			console.clear();
+		}
+		return sqset;
+		
+	};
+	SQSO.prototype.evaluate = function(sizeX, sizeY, values) {
+		let BORDER = [0.1, 0.5, 2, 0.5];
+		BORDER[-1] = 3;
+		let CENTER = [0.2, 0.8, 2, 0.8];
+		CENTER[-1] = 5;
+
+		let p = 1;
+		let u = 0, v = 0;
+		values.every((value) => {
+			if(u == 0 || u == sizeX -1 || v == 0 || v == sizeY -1) {
+					p *= BORDER[value];
+			} else {
+				p *= CENTER[value];
+			}
+
+			++u;
+			if(u >= sizeX) {u = 0; ++v;}
+			if(v >= sizeY) return false;
+			return true;
+		})
+		return p;
+	};
 	SQSO.prototype.merge = function(sqsetA, sqsetB, debug) {
 		if(!sqsetA) { debugger; throw new Error("Unable to merge empty sqset."); }
 		if(!sqsetB) { return sqsetA; }
@@ -206,10 +414,10 @@
 		let offsetX = Math.min(sqsetA.sqs.offsetX, sqsetB.sqs.offsetX);
 		let sizeX = Math.abs(sqsetA.sqs.offsetX - sqsetB.sqs.offsetX) + sqsetB.sqs.sizeX;
 
-		if(debug) {
+		//if(debug) {
 			//console.clear()
-			console.log(offsetY, sizeY, offsetX, sizeX);
-		}		
+			//console.log(offsetY, sizeY, offsetX, sizeX);
+		//}		
 
 		if(!sqsetA || !sqsetB) {
 			console.log("NULL");
@@ -221,15 +429,16 @@
 			return;
 		}
 
-		if(debug)
+		if(debug) {
+			console.log("Merging:");
 			console.log(sqsetA);
-		if(debug)
 			console.log(sqsetB);
+		}
 		let isHori = (sqsetA.sqs.offsetY - sqsetB.sqs.offsetY) == 0;
 
 
 		//if(sqsetA.solutions.length * sqsetB.solutions.length > 50000) {debugger;}
-		console.clear();
+		//console.clear();
 		let consoleCount = 0;
 		for(let u = 0; u < sqsetA.solutions.length; u++) {
 			for(let v = 0; v < sqsetB.solutions.length; v++) {
@@ -286,8 +495,8 @@
 					}
 				}
 
-				if(debug)
-					console.log(valid);
+				// if(debug)
+				// 	console.log(valid);
 
 				if(valid) {
 					// Construct the new solutions.
@@ -321,14 +530,24 @@
 						console.log(cellsHori, cellsVert);
 
 					sqss = cellsHori.map(value => '' + value).join('') + ',' + cellsVert.map(value => '' + value).join('');
+					let sqs = SQSS.restoreSQS(sqss, offsetX, offsetY, sizeX, sizeY ,sqsetA.sqs.values.concat(sqsetB.sqs.values));
+
+					let s = SQSO.verifySQS(sqs);
 					if(debug) {
-						let sqs = SQSS.restoreSQS(sqss, offsetX, offsetY, sizeX, sizeY ,sqsetA.sqs.values.concat(sqsetB.sqs.values))
 						sqs.print();
+						console.log("Verification: ", s);
 					}
-					sqset.try(sqss);
+					if(s) {
+						sqset.try(sqss);
+					}
 				}
 			}
 		}
+		if(debug) {
+			console.log("Merging result:");
+			console.log(sqset);
+		}
+
 		return sqset;
 	};
 	SQSO.prototype.permu = function(value, total) {
@@ -497,11 +716,7 @@
 		this.solutions = [];
 	};
 	SQSET.prototype.try = function(solution) {
-		let resSQS = SQSS.restoreSQS(solution, this.sqs.offsetX, this.sqs.offsetY, this.sqs.sizeX, this.sqs.sizeY, this.sqs.values);
-		if(SQSO.verifySQS(resSQS)) {
-			// resSQS.print();
-			this.solutions.push(solution);
-		}
+		this.solutions.push(solution);
 	};
 	SQSET.prototype.print = function() {
 		let result = "";

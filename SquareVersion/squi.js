@@ -133,7 +133,7 @@
 		B, 2, 2, B, 3, 3, 2, B, B, B, 2, B, 2, 3, B, B, B, 2, 2, B, 3, 1, B, B, 3,
 		];
 		let size = Math.sqrt(values.length);
-		sq.sqs = new SQ.SQS(25, 25, values);
+		sq.sqs = new SQ.SQS(size, size, values);
 		// console.log(sq.sqs);
 		// sq.sqs.print();
 		paper.view.center = new Point(size * SLEN, size * SLEN);
