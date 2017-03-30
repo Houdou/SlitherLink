@@ -106,7 +106,7 @@
 			for(let j = 0; j < this.sqs.sizeY; j += size) {
 				this.subs[size][j/size] = [];
 				for(let i = 0; i < this.sqs.sizeX; i += size) {
-					if(i == 0 && j == 0)
+					if(i == 6 && j == 0)
 					//{
 					//	console.log(i, j);
 						this.subs[size][j/size][i/size] = this.solveRegion3(i, j, size, true);
@@ -270,11 +270,11 @@
 				let sqset00 = this.merge(sqsetUL, sqsetCL, debug);
 				let sqset01;
 				if(p01 * p02 + p11 * p12 < p01 * p11 + p02 * p12) {
-					sqset01 = this.merge(this.merge(sqsetUL, sqsetUC, debug),
-						this.merge(sqsetCL, sqsetCC, debug), debug);
+					sqset01 = this.merge(this.merge(sqsetUC, sqsetUR, debug),
+						this.merge(sqsetCC, sqsetCR, debug), debug);
 				} else {
-					sqset01 = this.merge(this.merge(sqsetUL, sqsetCL, debug),
-						this.merge(sqsetUC, sqsetCC, debug), debug);
+					sqset01 = this.merge(this.merge(sqsetUC, sqsetCC, debug),
+						this.merge(sqsetUR, sqsetCR, debug), debug);
 				}
 				let sqset11 = this.merge(sqsetBC, sqsetBR, debug);
 				
@@ -376,10 +376,6 @@
 			}
 		}
 
-		if(debug) {
-			debugger;
-			console.clear();
-		}
 		return sqset;
 		
 	};
@@ -530,7 +526,7 @@
 						console.log(cellsHori, cellsVert);
 
 					sqss = cellsHori.map(value => '' + value).join('') + ',' + cellsVert.map(value => '' + value).join('');
-					let sqs = SQSS.restoreSQS(sqss, offsetX, offsetY, sizeX, sizeY ,sqsetA.sqs.values.concat(sqsetB.sqs.values));
+					let sqs = SQSS.restoreSQS(sqss, offsetX, offsetY, sizeX, sizeY, sqset.sqs.values);
 
 					let s = SQSO.verifySQS(sqs);
 					if(debug) {
