@@ -177,20 +177,20 @@
 		if(sqsetBL == undefined && sqsetBR == undefined)
 			return this.merge(sqsetUL, sqsetUR, debug);
 
-		let horiMergeCount = sqsetUL.solutions.length * sqsetUR.solutions.length
-			+ sqsetBL.solutions.length * sqsetBR.solutions.length;
-		let vertMergeCount = sqsetUL.solutions.length * sqsetBL.solutions.length
-			+ sqsetUR.solutions.length * sqsetBR.solutions.length;
+		// let horiMergeCount = sqsetUL.solutions.length * sqsetUR.solutions.length
+		// 	+ sqsetBL.solutions.length * sqsetBR.solutions.length;
+		// let vertMergeCount = sqsetUL.solutions.length * sqsetBL.solutions.length
+		// 	+ sqsetUR.solutions.length * sqsetBR.solutions.length;
 
 		let sqsetU, sqsetB;
 		
-		if(horiMergeCount < vertMergeCount) {
+		// if(horiMergeCount > vertMergeCount) {
 			sqsetU = this.merge(sqsetUL, sqsetUR, debug);
 			sqsetB = this.merge(sqsetBL, sqsetBR, debug);
-		} else {
-			sqsetU = this.merge(sqsetUL, sqsetBL, debug);
-			sqsetB = this.merge(sqsetUR, sqsetBR, debug);
-		}			
+		// } else {
+		// 	sqsetU = this.merge(sqsetUL, sqsetBL, debug);
+		// 	sqsetB = this.merge(sqsetUR, sqsetBR, debug);
+		// }			
 
 		let sqset = this.merge(sqsetU, sqsetB, debug);
 
