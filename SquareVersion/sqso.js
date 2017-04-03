@@ -78,6 +78,8 @@
 	SQSO.prototype.solve = function() {
 		this.startTime = (new Date()).getTime();
 
+		//Solve the board logically and get preliminary answer to simplify the calculation.
+
 		this.subs[0] = [];
 		// Start from every single cell
 		let size = 1;
@@ -100,20 +102,20 @@
 
 		//console.log(this.subs[1]);
 
-		//while(size <= Math.max(so.sqs.sizeX, so.sqs.sizeY)) {
-			size *= 3;
+		while(size <= Math.max(so.sqs.sizeX, so.sqs.sizeY)) {
+			size *= 2;
 			this.subs[size] = [];
 			for(let j = 0; j < this.sqs.sizeY; j += size) {
 				this.subs[size][j/size] = [];
 				for(let i = 0; i < this.sqs.sizeX; i += size) {
-					if(i == 6 && j == 0)
+					//if(i == 6 && j == 0)
 					//{
 					//	console.log(i, j);
-						this.subs[size][j/size][i/size] = this.solveRegion3(i, j, size, true);
+						this.subs[size][j/size][i/size] = this.solveRegion(i, j, size);
 					//}
 				}
 			}
-		//}
+		}
 
 		this.endTime = (new Date()).getTime();
 		// // console.log("solved");
